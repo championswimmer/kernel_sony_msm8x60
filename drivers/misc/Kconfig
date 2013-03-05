@@ -704,7 +704,7 @@ config RAMDUMP_CRASH_LOGS
 	  This will enable /proc/ramdumpinfo and /proc/last_amsslog
 	  on a reboot after crash.
 
-config SONY_ONESEG_TUNER_PM
+config SEMC_ONESEG_TUNER_PM
 	tristate "SEMC Oneseg tuner pm driver for SMT-VJ180"
 	default n
 	depends on GENERIC_GPIO
