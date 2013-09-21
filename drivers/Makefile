@@ -145,3 +145,5 @@ obj-$(CONFIG_MOBICORE_SUPPORT)  += gud/
 obj-$(CONFIG_CORESIGHT)		+= coresight/
 
 obj-$(CONFIG_RMI4_BUS)		+= rmi4/
+
+obj-$(CONFIG_CYPRESS_CYTTSP4_BUS)	+= ttsp/
