@@ -324,6 +324,12 @@ obj-$(CONFIG_MACH_BLUE_HAYABUSA) += gyro-sony_common.o board-blue_hayabusa-mpu.o
 obj-$(CONFIG_MACH_BLUE_MINT) += board-blue-all.o board-blue_mint-pmic.o board-blue_mint-gpiomux.o board-blue_mint-regulator.o devices-8960.o battery-blue_mentos.o
 obj-$(CONFIG_MACH_BLUE_MINT) += gyro-sony_common.o board-blue_mint-mpu.o board-blue_mint-camera.o board-blue_mint-leds.o board-blue_mint-usb.o
 
+#viskan
+board-sony_viskan-all-objs += board-sony_viskan.o board-sony_viskan-display.o board-sony_viskan-storage.o
+
+obj-$(CONFIG_MACH_VISKAN_HUASHAN) += board-sony_viskan-all.o board-sony_viskan_huashan-gpiomux.o board-sony_viskan_huashan-pmic.o board-sony_viskan_huashan-regulator.o
+obj-$(CONFIG_MACH_VISKAN_HUASHAN) += board-sony_viskan_huashan-camera.o bms-batterydata-sleipner.o
+
 CFLAGS_msm_vibrator.o += -Idrivers/staging/android
 CFLAGS_board-9615.o += -Idrivers/usb/gadget
 
