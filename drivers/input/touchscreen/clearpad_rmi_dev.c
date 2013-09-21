@@ -18,7 +18,6 @@
  * Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
  */
 
-#include <linux/module.h>
 #include <linux/platform_device.h>
 #include <linux/cdev.h>
 #include <linux/fs.h>
@@ -28,6 +27,7 @@
 #include <linux/input.h>
 #include <linux/interrupt.h>
 #include <linux/syscalls.h>
+#include <linux/module.h>
 #include <linux/clearpad.h>
 
 #define CHAR_DEVICE_NAME "rmi"
