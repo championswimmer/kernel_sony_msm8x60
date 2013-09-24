@@ -931,7 +931,11 @@ struct axi_ctrl_t {
 	struct resource	*vfemem;
 	struct resource *vfeio;
 	struct regulator *fs_vfe;
+#if defined(CONFIG_SONY_CAM_V4L2)
+	struct clk *vfe_clk[4];
+#else
 	struct clk *vfe_clk[3];
+#endif
 	struct tasklet_struct vfe32_tasklet;
 };
 
