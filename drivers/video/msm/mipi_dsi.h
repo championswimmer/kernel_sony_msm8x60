@@ -353,4 +353,5 @@ void mipi_dsi_cmd_mdp_busy(void);
 void update_lane_config(struct msm_panel_info *pinfo);
 #endif
 
+void mipi_dsi_buf_release(struct dsi_buf *dp);
 #endif /* MIPI_DSI_H */
