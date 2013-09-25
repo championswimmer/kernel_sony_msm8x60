@@ -378,11 +378,10 @@ static void mhl_msc_command_work(struct work_struct *work)
 		if (ret == -EAGAIN)
 			pr_err("%s: send_msc_command retry out!\n", __func__);
 
-#ifdef CONFIG_MHL_RAP
 		if (event->msc_command_queue.payload.data[0] ==
 			MHL_MSC_MSG_RAP)
 			mod_timer(&mhl_dev->rap_send_timer, RAPK_WAIT_TIME);
-#endif /* CONFIG_MHL_RAP */
+
 		vfree(event);
 
 		mutex_lock(&msc_command_queue_mutex);
@@ -703,13 +702,9 @@ int mhl_msc_recv_set_int(struct mhl_device *mhl_dev, u8 offset, u8 mask)
 			/* peer EDID has changed.
 			   toggle HPD to read EDID again */
 			if (mhl_dev->ops->hpd_control) {
-				mutex_lock(&mhl_dev->ops_mutex);
 				mhl_dev->ops->hpd_control(FALSE);
-				mutex_unlock(&mhl_dev->ops_mutex);
 				msleep(110);
-				mutex_lock(&mhl_dev->ops_mutex);
 				mhl_dev->ops->hpd_control(TRUE);
-				mutex_unlock(&mhl_dev->ops_mutex);
 			} else {
 				/* chip driver doesn't have HPD control
 				   send offline/online to userspace */
@@ -926,7 +921,7 @@ static int mhl_rcp_recv(struct mhl_device *mhl_dev, u8 key_code)
 		rc = mhl_prior_send_msc_command_msc_msg(
 			mhl_dev,
 			MHL_MSC_MSG_RCPE,
-			MHL_RCPE_INEFFECTIVE_KEY_CODE);
+			MHL_RCPE_UNSUPPORTED_KEY_CODE);
 		if (rc)
 			return rc;
 		/* send rcpk after rcpe send */
@@ -959,18 +954,14 @@ static int mhl_rap_action(struct mhl_device *mhl_dev, u8 action_code)
 	switch (action_code) {
 	case MHL_RAP_CONTENT_ON:
 		if (!mhl_dev->tmds_state) {
-			mutex_lock(&mhl_dev->ops_mutex);
 			mhl_dev->ops->tmds_control(TRUE);
-			mutex_unlock(&mhl_dev->ops_mutex);
 			/* notify userspace */
 			mhl_notify_rap_recv(mhl_dev, action_code);
 		}
 		break;
 	case MHL_RAP_CONTENT_OFF:
 		if (mhl_dev->tmds_state) {
-			mutex_lock(&mhl_dev->ops_mutex);
 			mhl_dev->ops->tmds_control(FALSE);
-			mutex_unlock(&mhl_dev->ops_mutex);
 			/* notify userspace */
 			mhl_notify_rap_recv(mhl_dev, action_code);
 		}
@@ -1275,11 +1266,19 @@ static void mhl_usb_online_work(struct work_struct *work)
 
 int mhl_register_callback(const char *name, void (*callback)(int on))
 {
+	struct mhl_device *mhl_dev;
 	int ret = 0;
 
-	if (!notify_usb_online)
+	mhl_dev = mhl_get_dev(name);
+
+	if (!notify_usb_online) {
 		notify_usb_online = callback;
-	else {
+		if (mhl_dev)
+			notify_usb_online
+				(!!(mhl_dev->mhl_online & MHL_PLUGGED));
+		else
+			notify_usb_online(0);
+	} else {
 		pr_err("%s: callback is already registered!\n", __func__);
 		ret = -EFAULT;
 	}

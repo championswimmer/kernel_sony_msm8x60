@@ -1,7 +1,4 @@
-/*
- * Copyright (C) 2011 Sony Ericsson Mobile Communications AB.
- * Copyright (C) 2012 Sony Mobile Communications AB.
- * Copyright (C) 2011 Silicon Image Inc.
+/* Copyright (c) 2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -153,7 +150,7 @@ enum {
 };
 
 #define MHL_RCPE_NO_ERROR			0x00
-#define MHL_RCPE_INEFFECTIVE_KEY_CODE		0x01
+#define MHL_RCPE_UNSUPPORTED_KEY_CODE		0x01
 #define MHL_RCPE_BUSY				0x02
 
 #define MHL_RAPK_NO_ERROR			0x00
