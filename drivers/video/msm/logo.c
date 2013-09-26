@@ -14,6 +14,7 @@
  * GNU General Public License for more details.
  *
  */
+#include <asm/cacheflush.h>
 #include <linux/module.h>
 #include <linux/types.h>
 #include <linux/fb.h>
@@ -23,9 +24,6 @@
 
 #include <linux/irq.h>
 #include <asm/system.h>
-
-#include "mdp.h"
-#include "mdp4.h"
 
 #define fb_width(fb)	((fb)->var.xres)
 #define fb_linewidth(fb) \
@@ -52,7 +50,7 @@ static void memset32(void *_ptr, unsigned int val, unsigned count)
 }
 
 /* 565RLE image format: [count(2 bytes), rle(2 bytes)] */
-int load_565rle_image(char *filename, bool bf_supported)
+int load_565rle_image(char *filename)
 {
 	struct fb_info *info;
 	int fd, err = 0;
@@ -93,12 +91,6 @@ int load_565rle_image(char *filename, bool bf_supported)
 	stride = fb_linewidth(info);
 	max = width * fb_height(info);
 	ptr = data;
-	if (bf_supported && (info->node == 1 || info->node == 2)) {
-		err = -EPERM;
-		pr_err("%s:%d no info->creen_base on fb%d!\n",
-		       __func__, __LINE__, info->node);
-		goto err_logo_free_data;
-	}
 	bits = (unsigned char *)(info->screen_base);
 	while (count > 3) {
 		int n = ptr[0];
@@ -140,6 +132,7 @@ int load_565rle_image(char *filename, bool bf_supported)
 		count -= 4;
 	}
 
+	dmac_flush_range(info->screen_base, info->screen_base + fb_size(info));
 err_logo_free_data:
 	kfree(data);
 err_logo_close_file:
@@ -162,10 +155,7 @@ static void __init draw_logo(void)
 
 int __init logo_init(void)
 {
-	boolean bf_supported;
-	bf_supported = mdp4_overlay_borderfill_supported();
-
-	if (!load_565rle_image(INIT_IMAGE_FILE, bf_supported))
+	if (!load_565rle_image(INIT_IMAGE_FILE))
 		draw_logo();
 
 	return 0;
