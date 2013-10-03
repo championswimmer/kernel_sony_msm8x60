@@ -1,4 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+/* Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -35,6 +35,7 @@
 #include <mach/msm_rtb.h>
 #include <linux/ion.h>
 #include "clock.h"
+#include "pm.h"
 #include "devices.h"
 #include "footswitch.h"
 #include "msm_watchdog.h"
@@ -94,6 +95,37 @@
 /* Address of PCIE20 */
 #define PCIE20_PHYS   0x1b500000
 #define PCIE20_SIZE   SZ_4K
+#define MSM8064_RPM_MASTER_STATS_BASE	0x10BB00
+#define MSM8064_PC_CNTR_PHYS	(APQ8064_IMEM_PHYS + 0x664)
+#define MSM8064_PC_CNTR_SIZE		0x40
+
+static struct resource msm8064_resources_pccntr[] = {
+	{
+		.start	= MSM8064_PC_CNTR_PHYS,
+		.end	= MSM8064_PC_CNTR_PHYS + MSM8064_PC_CNTR_SIZE,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+struct platform_device msm8064_pc_cntr = {
+	.name		= "pc-cntr",
+	.id		= -1,
+	.num_resources	= ARRAY_SIZE(msm8064_resources_pccntr),
+	.resource	= msm8064_resources_pccntr,
+};
+
+static struct msm_pm_sleep_status_data msm_pm_slp_sts_data = {
+	.base_addr = MSM_ACC0_BASE + 0x08,
+	.cpu_offset = MSM_ACC1_BASE - MSM_ACC0_BASE,
+	.mask = 1UL << 13,
+};
+struct platform_device msm8064_cpu_slp_status = {
+	.name		= "cpu_slp_status",
+	.id		= -1,
+	.dev = {
+		.platform_data = &msm_pm_slp_sts_data,
+	},
+};
 
 static struct msm_watchdog_pdata msm_watchdog_pdata = {
 	.pet_time = 10000,
@@ -1067,26 +1099,26 @@ static struct msm_bus_vectors vidc_venc_1080p_turbo_vectors[] = {
 	{
 		.src = MSM_BUS_MASTER_VIDEO_ENC,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = 222298112,
+		.ab  = 372244480,
 		.ib  = 3522000000U,
 	},
 	{
 		.src = MSM_BUS_MASTER_VIDEO_DEC,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
-		.ab  = 330301440,
+		.ab  = 501219328,
 		.ib  = 3522000000U,
 	},
 	{
 		.src = MSM_BUS_MASTER_AMPSS_M0,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
 		.ab  = 2500000,
-		.ib  = 700000000,
+		.ib  = 5000000,
 	},
 	{
 		.src = MSM_BUS_MASTER_AMPSS_M0,
 		.dst = MSM_BUS_SLAVE_EBI_CH0,
 		.ab  = 2500000,
-		.ib  = 10000000,
+		.ib  = 5000000,
 	},
 };
 static struct msm_bus_vectors vidc_vdec_1080p_turbo_vectors[] = {
@@ -1195,6 +1227,7 @@ struct msm_vidc_platform_data apq8064_vidc_platform_data = {
 	.disable_fullhd = 0,
 	.cont_mode_dpb_count = 18,
 	.fw_addr = 0x9fe00000,
+	.enable_sec_metadata = 1,
 };
 
 struct platform_device apq8064_msm_device_vidc = {
@@ -2079,6 +2112,37 @@ struct platform_device apq8064_rpm_stat_device = {
 	},
 };
 
+static struct resource resources_rpm_master_stats[] = {
+	{
+		.start	= MSM8064_RPM_MASTER_STATS_BASE,
+		.end	= MSM8064_RPM_MASTER_STATS_BASE + SZ_256,
+		.flags	= IORESOURCE_MEM,
+	},
+};
+
+static char *master_names[] = {
+	"KPSS",
+	"MPSS",
+	"LPASS",
+	"RIVA",
+	"DSPS",
+};
+
+static struct msm_rpm_master_stats_platform_data msm_rpm_master_stat_pdata = {
+	.masters = master_names,
+	.nomasters = ARRAY_SIZE(master_names),
+};
+
+struct platform_device apq8064_rpm_master_stat_device = {
+	.name = "msm_rpm_master_stat",
+	.id = -1,
+	.num_resources	= ARRAY_SIZE(resources_rpm_master_stats),
+	.resource	= resources_rpm_master_stats,
+	.dev = {
+		.platform_data = &msm_rpm_master_stat_pdata,
+	},
+};
+
 static struct msm_rpm_log_platform_data msm_rpm_log_pdata = {
 	.phys_addr_base = 0x0010C000,
 	.reg_offsets = {
@@ -2086,8 +2150,8 @@ static struct msm_rpm_log_platform_data msm_rpm_log_pdata = {
 		[MSM_RPM_LOG_PAGE_BUFFER]  = 0x000000A0,
 	},
 	.phys_size = SZ_8K,
-	.log_len = 4096,		  /* log's buffer length in bytes */
-	.log_len_mask = (4096 >> 2) - 1,  /* length mask in units of u32 */
+	.log_len = 6144,		  /* log's buffer length in bytes */
+	.log_len_mask = (6144 >> 2) - 1,  /* length mask in units of u32 */
 };
 
 struct platform_device apq8064_rpm_log_device = {
@@ -2330,40 +2394,94 @@ struct platform_device apq8064_cpu_idle_device = {
 	},
 };
 
-static struct msm_dcvs_freq_entry apq8064_freq[] = {
-	{ 384000, 166981,  345600},
-	{ 702000, 213049,  632502},
-	{1026000, 285712,  925613},
-	{1242000, 383945, 1176550},
-	{1458000, 419729, 1465478},
-	{1512000, 434116, 1546674},
+static struct msm_dcvs_sync_rule apq8064_dcvs_sync_rules[] = {
+	{1026000,	400000},
+	{384000,	200000},
+	{0,		128000},
+};
 
+static struct msm_dcvs_platform_data apq8064_dcvs_data = {
+	.sync_rules	= apq8064_dcvs_sync_rules,
+	.num_sync_rules = ARRAY_SIZE(apq8064_dcvs_sync_rules),
+	.gpu_max_nom_khz = 320000,
+};
+
+struct platform_device apq8064_dcvs_device = {
+	.name		= "dcvs",
+	.id		= -1,
+	.dev		= {
+		.platform_data = &apq8064_dcvs_data,
+	},
 };
 
 static struct msm_dcvs_core_info apq8064_core_info = {
-	.freq_tbl = &apq8064_freq[0],
-	.core_param = {
-		.max_time_us = 100000,
-		.num_freq = ARRAY_SIZE(apq8064_freq),
+	.num_cores		= 4,
+	.sensors		= (int[]){7, 8, 9, 10},
+	.thermal_poll_ms	= 60000,
+	.core_param		= {
+		.core_type	= MSM_DCVS_CORE_TYPE_CPU,
 	},
-	.algo_param = {
-		.slack_time_us = 58000,
-		.scale_slack_time = 0,
-		.scale_slack_time_pct = 0,
-		.disable_pc_threshold = 1458000,
-		.em_window_size = 100000,
-		.em_max_util_pct = 97,
-		.ss_window_size = 1000000,
-		.ss_util_pct = 95,
-		.ss_iobusy_conv = 100,
+	.algo_param		= {
+		.disable_pc_threshold		= 1458000,
+		.em_win_size_min_us		= 100000,
+		.em_win_size_max_us		= 300000,
+		.em_max_util_pct		= 97,
+		.group_id			= 1,
+		.max_freq_chg_time_us		= 100000,
+		.slack_mode_dynamic		= 0,
+		.slack_weight_thresh_pct	= 3,
+		.slack_time_min_us		= 45000,
+		.slack_time_max_us		= 45000,
+		.ss_no_corr_below_freq		= 0,
+		.ss_win_size_min_us		= 1000000,
+		.ss_win_size_max_us		= 1000000,
+		.ss_util_pct			= 95,
 	},
+	.energy_coeffs		= {
+		.active_coeff_a		= 336,
+		.active_coeff_b		= 0,
+		.active_coeff_c		= 0,
+
+		.leakage_coeff_a	= -17720,
+		.leakage_coeff_b	= 37,
+		.leakage_coeff_c	= 3329,
+		.leakage_coeff_d	= -277,
+	},
+	.power_param		= {
+		.current_temp	= 25,
+		.num_freq	= 0, /* set at runtime */
+	}
+};
+
+#define APQ8064_LPM_LATENCY  1000 /* >100 usec for WFI */
+
+static struct msm_gov_platform_data gov_platform_data = {
+	.info = &apq8064_core_info,
+	.latency = APQ8064_LPM_LATENCY,
 };
 
 struct platform_device apq8064_msm_gov_device = {
 	.name = "msm_dcvs_gov",
 	.id = -1,
 	.dev = {
-		.platform_data = &apq8064_core_info,
+		.platform_data = &gov_platform_data,
+	},
+};
+
+static struct msm_mpd_algo_param apq8064_mpd_algo_param = {
+	.em_win_size_min_us	= 10000,
+	.em_win_size_max_us	= 100000,
+	.em_max_util_pct	= 90,
+	.online_util_pct_min	= 60,
+	.slack_time_min_us	= 50000,
+	.slack_time_max_us	= 100000,
+};
+
+struct platform_device apq8064_msm_mpd_device = {
+	.name	= "msm_mpdecision",
+	.id	= -1,
+	.dev	= {
+		.platform_data = &apq8064_mpd_algo_param,
 	},
 };
 
@@ -2508,43 +2626,105 @@ struct platform_device apq8064_device_cache_erp = {
 	.resource	= msm_cache_erp_resources,
 };
 
-#define MSM_QDSS_PHYS_BASE		0x01A00000
-#define MSM_ETM_PHYS_BASE		(MSM_QDSS_PHYS_BASE + 0x1C000)
+#define CORESIGHT_PHYS_BASE		0x01A00000
+#define CORESIGHT_FUNNEL_PHYS_BASE	(CORESIGHT_PHYS_BASE + 0x4000)
+#define CORESIGHT_ETM2_PHYS_BASE	(CORESIGHT_PHYS_BASE + 0x1E000)
+#define CORESIGHT_ETM3_PHYS_BASE	(CORESIGHT_PHYS_BASE + 0x1F000)
 
-#define QDSS_SOURCE(src_name, fpm) { .name = src_name, .fport_mask = fpm, }
-
-static struct qdss_source msm_qdss_sources[] = {
-	QDSS_SOURCE("msm_etm", 0x33),
-	QDSS_SOURCE("msm_oxili", 0x80),
-};
-
-static struct msm_qdss_platform_data qdss_pdata = {
-	.src_table = msm_qdss_sources,
-	.size = ARRAY_SIZE(msm_qdss_sources),
-	.afamily = 1,
-};
-
-struct platform_device apq8064_qdss_device = {
-	.name          = "msm_qdss",
-	.id            = -1,
-	.dev           = {
-		.platform_data = &qdss_pdata,
-	},
-};
-
-static struct resource msm_etm_resources[] = {
+static struct resource coresight_funnel_resources[] = {
 	{
-		.start = MSM_ETM_PHYS_BASE,
-		.end   = MSM_ETM_PHYS_BASE + (SZ_4K * 4) - 1,
+		.start = CORESIGHT_FUNNEL_PHYS_BASE,
+		.end   = CORESIGHT_FUNNEL_PHYS_BASE + SZ_4K - 1,
 		.flags = IORESOURCE_MEM,
 	},
 };
 
-struct platform_device apq8064_etm_device = {
-	.name          = "msm_etm",
+static const int coresight_funnel_outports[] = { 0, 1 };
+static const int coresight_funnel_child_ids[] = { 0, 1 };
+static const int coresight_funnel_child_ports[] = { 0, 0 };
+
+static struct coresight_platform_data coresight_funnel_pdata = {
+	.id		= 2,
+	.name		= "coresight-funnel",
+	.nr_inports	= 8,
+	.outports	= coresight_funnel_outports,
+	.child_ids	= coresight_funnel_child_ids,
+	.child_ports	= coresight_funnel_child_ports,
+	.nr_outports	= ARRAY_SIZE(coresight_funnel_outports),
+};
+
+struct platform_device apq8064_coresight_funnel_device = {
+	.name          = "coresight-funnel",
 	.id            = 0,
-	.num_resources = ARRAY_SIZE(msm_etm_resources),
-	.resource      = msm_etm_resources,
+	.num_resources = ARRAY_SIZE(coresight_funnel_resources),
+	.resource      = coresight_funnel_resources,
+	.dev = {
+		.platform_data = &coresight_funnel_pdata,
+	},
+};
+
+static struct resource coresight_etm2_resources[] = {
+	{
+		.start = CORESIGHT_ETM2_PHYS_BASE,
+		.end   = CORESIGHT_ETM2_PHYS_BASE + SZ_4K - 1,
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+static const int coresight_etm2_outports[] = { 0 };
+static const int coresight_etm2_child_ids[] = { 2 };
+static const int coresight_etm2_child_ports[] = { 4 };
+
+static struct coresight_platform_data coresight_etm2_pdata = {
+	.id		= 6,
+	.name		= "coresight-etm2",
+	.nr_inports	= 0,
+	.outports	= coresight_etm2_outports,
+	.child_ids	= coresight_etm2_child_ids,
+	.child_ports	= coresight_etm2_child_ports,
+	.nr_outports	= ARRAY_SIZE(coresight_etm2_outports),
+};
+
+struct platform_device coresight_etm2_device = {
+	.name          = "coresight-etm",
+	.id            = 2,
+	.num_resources = ARRAY_SIZE(coresight_etm2_resources),
+	.resource      = coresight_etm2_resources,
+	.dev = {
+		.platform_data = &coresight_etm2_pdata,
+	},
+};
+
+static struct resource coresight_etm3_resources[] = {
+	{
+		.start = CORESIGHT_ETM3_PHYS_BASE,
+		.end   = CORESIGHT_ETM3_PHYS_BASE + SZ_4K - 1,
+		.flags = IORESOURCE_MEM,
+	},
+};
+
+static const int coresight_etm3_outports[] = { 0 };
+static const int coresight_etm3_child_ids[] = { 2 };
+static const int coresight_etm3_child_ports[] = { 5 };
+
+static struct coresight_platform_data coresight_etm3_pdata = {
+	.id		= 7,
+	.name		= "coresight-etm3",
+	.nr_inports	= 0,
+	.outports	= coresight_etm3_outports,
+	.child_ids	= coresight_etm3_child_ids,
+	.child_ports	= coresight_etm3_child_ports,
+	.nr_outports	= ARRAY_SIZE(coresight_etm3_outports),
+};
+
+struct platform_device coresight_etm3_device = {
+	.name          = "coresight-etm",
+	.id            = 3,
+	.num_resources = ARRAY_SIZE(coresight_etm3_resources),
+	.resource      = coresight_etm3_resources,
+	.dev = {
+		.platform_data = &coresight_etm3_pdata,
+	},
 };
 
 struct msm_iommu_domain_name apq8064_iommu_ctx_names[] = {

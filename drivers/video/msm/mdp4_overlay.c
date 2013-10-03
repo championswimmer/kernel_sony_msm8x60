@@ -847,7 +847,8 @@ void mdp4_overlay_vg_setup(struct mdp4_overlay_pipe *pipe)
 	uint32 frame_size, src_size, src_xy, dst_size, dst_xy;
 	uint32 format, pattern, luma_offset, chroma_offset;
 	uint32 mask;
-	int pnum, ptype;
+	int pnum, ptype, i;
+	uint32_t block;
 
 	pnum = pipe->pipe_num - OVERLAY_PIPE_VG1; /* start from 0 */
 	vg_base = MDP_BASE + MDP4_VIDEO_BASE;
@@ -875,6 +876,20 @@ void mdp4_overlay_vg_setup(struct mdp4_overlay_pipe *pipe)
 
 			mdp4_csc_write(&pipe->pp_cfg.csc_cfg,
 				(uint32_t) (vg_base + MDP4_VIDEO_CSC_OFF));
+
+			if (pipe->pipe_num == OVERLAY_PIPE_VG1)
+				block = MDP_BLOCK_VG_1;
+			else
+				block = MDP_BLOCK_VG_2;
+
+			for (i = 0; i < CSC_MAX_BLOCKS; i++) {
+				if (block == csc_cfg_matrix[i].block) {
+					memcpy(&csc_cfg_matrix[i].csc_data,
+					&(pipe->pp_cfg.csc_cfg),
+					sizeof(struct mdp_csc_cfg));
+					break;
+				}
+			}
 		}
 		if (pipe->pp_cfg.config_ops & MDP_OVERLAY_PP_QSEED_CFG) {
 			mdp4_qseed_access_cfg(&pipe->pp_cfg.qseed_cfg[0],
@@ -1575,19 +1590,36 @@ void mdp4_overlayproc_cfg(struct mdp4_overlay_pipe *pipe)
 		mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
 }
 
-int mdp4_overlay_pipe_staged(struct mdp4_overlay_pipe *pipe)
+int mdp4_overlay_pipe_staged(int mixer)
 {
-	uint32 data, mask;
-	int mixer;
+	uint32 data, mask, i, off;
+	int p1, p2;
 
-	mixer = pipe->mixer_num;
-	data = ctrl->mixer_cfg[mixer];
+	if (mixer == MDP4_MIXER2)
+		off = 0x100F0;
+	else
+		off = 0x10100;
 
-	mask = 0x0f;
-	mask <<= (4 * pipe->pipe_num);
-	data &= mask;
+	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_ON, FALSE);
+	data = inpdw(MDP_BASE + off);
+	mdp_pipe_ctrl(MDP_CMD_BLOCK, MDP_BLOCK_POWER_OFF, FALSE);
+	p1 = 0;
+	p2 = 0;
+	for (i = 0; i < 8; i++) {
+		mask = data & 0x0f;
+		if (mask) {
+			if (mask <= 4)
+				p1++;
+			else
+				p2++;
+		}
+		data >>= 4;
+	}
 
-	return data;
+	if (mixer)
+		return p2;
+	else
+		return p1;
 }
 
 int mdp4_mixer_info(int mixer_num, struct mdp_mixer_info *info)
@@ -1714,7 +1746,7 @@ void mdp4_mixer_stage_down(struct mdp4_overlay_pipe *pipe, int commit)
 			ctrl->stage[mixer][i] = NULL;  /* clear it */
 	}
 
-	if (commit || (mixer > 0 && !hdmi_prim_display))
+	if (commit)
 		mdp4_mixer_stage_commit(mixer);
 }
 /*
@@ -2484,11 +2516,6 @@ static int mdp4_overlay_req2pipe(struct mdp_overlay *req, int mixer,
 	 * zorder 2 == stage 2 == 4
 	 */
 	if (req->id == MSMFB_NEW_REQUEST) {  /* new request */
-		if (mdp4_overlay_pipe_staged(pipe)) {
-			pr_err("%s: ndx=%d still staged\n", __func__,
-						pipe->pipe_ndx);
-			return -EPERM;
-		}
 		pipe->pipe_used++;
 		pipe->mixer_num = mixer;
 		pr_debug("%s: zorder=%d pipe ndx=%d num=%d\n", __func__,
