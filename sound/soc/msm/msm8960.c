@@ -1,5 +1,4 @@
 /* Copyright (c) 2011-2013 The Linux Foundation. All rights reserved.
- * Copyright (C) 2011 Sony Ericsson Mobile Communications AB.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -11,6 +10,7 @@
  * GNU General Public License for more details.
  */
 
+#include <linux/msm8960.h>
 #include <linux/clk.h>
 #include <linux/delay.h>
 #include <linux/gpio.h>
@@ -28,7 +28,6 @@
 #include <linux/mfd/wcd9xxx/core.h>
 #include "msm-pcm-routing.h"
 #include "../codecs/wcd9310.h"
-#include <mach/pm8921-mic_bias.h>
 
 /* 8960 machine driver */
 
@@ -49,10 +48,9 @@
 #define BOTTOM_SPK_AMP_NEG	0x2
 #define TOP_SPK_AMP_POS		0x4
 #define TOP_SPK_AMP_NEG		0x8
-#define TOP_SPK_AMP		0x10
 
-#define RIGHT_SPK_AMP   0x20
-#define LEFT_SPK_AMP   0x40
+#define BOTTOM_SPK_AMP   0x1
+#define TOP_SPK_AMP      0x2
 
 #define GPIO_AUX_PCM_DOUT 63
 #define GPIO_AUX_PCM_DIN 64
@@ -93,9 +91,9 @@ static bool hs_detect_use_gpio = true;
 module_param(hs_detect_use_gpio, bool, 0444);
 MODULE_PARM_DESC(hs_detect_use_gpio, "Use GPIO for headset detection");
 
-static bool hs_detect_extn_cable;
-module_param(hs_detect_extn_cable, bool, 0444);
-MODULE_PARM_DESC(hs_detect_extn_cable, "Enable extension cable feature");
+static bool msm8960_hs_detect_extn_cable;
+module_param(msm8960_hs_detect_extn_cable, bool, 0444);
+MODULE_PARM_DESC(msm8960_hs_detect_extn_cable, "Enable extension cable feature");
 
 
 static bool hs_detect_use_firmware;
@@ -109,7 +107,7 @@ static bool msm8960_swap_gnd_mic(struct snd_soc_codec *codec);
 static struct tabla_mbhc_config mbhc_cfg = {
 	.headset_jack = &hs_jack,
 	.button_jack = &button_jack,
-	.read_fw_bin = true,
+	.read_fw_bin = false,
 	.calibration = NULL,
 	.micbias = TABLA_MICBIAS2,
 	.mclk_cb_fn = msm8960_enable_codec_ext_clk,
@@ -182,11 +180,11 @@ static void msm8960_enable_ext_spk_amp_gpio(u32 spk_amp_gpio)
 
 static void msm8960_ext_single_ended_spk_power_amp_on(u32 spk)
 {
-	if (spk & RIGHT_SPK_AMP) {
+	if (spk & BOTTOM_SPK_AMP) {
 
 		if (msm8960_ext_bottom_spk_pamp) {
 
-			pr_debug("%s() External Right Speaker Ampl already "
+			pr_debug("%s() External Bottom Speaker Ampl already "
 				"turned on. spk = 0x%08x\n", __func__, spk);
 			return;
 		}
@@ -201,11 +199,11 @@ static void msm8960_ext_single_ended_spk_power_amp_on(u32 spk)
 			" Bottom Speaker Ampl\n", __func__);
 		usleep_range(4000, 4000);
 
-	} else if (spk & LEFT_SPK_AMP) {
+	} else if (spk & TOP_SPK_AMP) {
 
 		if (msm8960_ext_top_spk_pamp) {
 
-			pr_debug("%s() External Left Speaker Ampl already"
+			pr_debug("%s() External Top Speaker Ampl already"
 				"turned on. spk = 0x%08x\n", __func__, spk);
 			return;
 		}
@@ -285,7 +283,7 @@ static void msm8960_ext_spk_power_amp_on(u32 spk)
 
 static void msm8960_ext_single_ended_spk_power_amp_off(u32 spk)
 {
-	if (spk & RIGHT_SPK_AMP) {
+	if (spk & BOTTOM_SPK_AMP) {
 
 		if (!msm8960_ext_bottom_spk_pamp)
 			return;
@@ -294,12 +292,12 @@ static void msm8960_ext_single_ended_spk_power_amp_off(u32 spk)
 		gpio_free(bottom_spk_pamp_gpio);
 		msm8960_ext_bottom_spk_pamp = 0;
 
-		pr_debug("%s: sleeping 4 ms after turning off external Right"
+		pr_debug("%s: sleeping 4 ms after turning off external Bottom"
 			" Speaker Ampl\n", __func__);
 
 		usleep_range(4000, 4000);
 
-	} else if (spk & LEFT_SPK_AMP) {
+	} else if (spk & TOP_SPK_AMP) {
 
 		if (!msm8960_ext_top_spk_pamp)
 			return;
@@ -308,7 +306,7 @@ static void msm8960_ext_single_ended_spk_power_amp_off(u32 spk)
 		gpio_free(top_spk_pamp_gpio);
 		msm8960_ext_top_spk_pamp = 0;
 
-		pr_debug("%s: sleeping 4 ms after turning off external Left"
+		pr_debug("%s: sleeping 4 ms after turning off external Top"
 			" Spkaker Ampl\n", __func__);
 
 		usleep_range(4000, 4000);
@@ -442,9 +440,9 @@ static int msm8960_single_ended_spkramp_event(struct snd_soc_dapm_widget *w,
 	if (SND_SOC_DAPM_EVENT_ON(event)) {
 		if (!strncmp(w->name, "Ext Spk Bottom", 14))
 			msm8960_ext_single_ended_spk_power_amp_on(
-				RIGHT_SPK_AMP);
+				BOTTOM_SPK_AMP);
 		else if (!strncmp(w->name, "Ext Spk Top", 11))
-			msm8960_ext_single_ended_spk_power_amp_on(LEFT_SPK_AMP);
+			msm8960_ext_single_ended_spk_power_amp_on(TOP_SPK_AMP);
 		else {
 			pr_err("%s() Invalid Speaker Widget = %s\n",
 					__func__, w->name);
@@ -454,9 +452,9 @@ static int msm8960_single_ended_spkramp_event(struct snd_soc_dapm_widget *w,
 	} else {
 		if (!strncmp(w->name, "Ext Spk Bottom", 14))
 			msm8960_ext_single_ended_spk_power_amp_off(
-				RIGHT_SPK_AMP);
+				BOTTOM_SPK_AMP);
 		else if (!strncmp(w->name, "Ext Spk Top", 11))
-			msm8960_ext_single_ended_spk_power_amp_off(LEFT_SPK_AMP);
+			msm8960_ext_single_ended_spk_power_amp_off(TOP_SPK_AMP);
 		else {
 			pr_err("%s() Invalid Speaker Widget = %s\n",
 					__func__, w->name);
@@ -506,14 +504,6 @@ static int msm8960_spkramp_event(struct snd_soc_dapm_widget *w,
 		}
 	}
 	return 0;
-}
-
-static int msm8960_handset_mic_event(struct snd_soc_dapm_widget *w,
-	struct snd_kcontrol *k, int event)
-{
-	pr_debug("%s() %x\n", __func__, SND_SOC_DAPM_EVENT_ON(event));
-
-	return pm8921_mic_bias_enable(SND_SOC_DAPM_EVENT_ON(event));
 }
 
 static int msm8960_enable_codec_ext_clk(struct snd_soc_codec *codec, int enable,
@@ -580,21 +570,7 @@ static int msm8960_mclk_event(struct snd_soc_dapm_widget *w,
 	return 0;
 }
 
-static const struct snd_soc_dapm_widget blue_msm8960_dapm_widgets[] = {
-
-	SND_SOC_DAPM_SUPPLY("MCLK",  SND_SOC_NOPM, 0, 0,
-	msm8960_mclk_event, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
-
-	SND_SOC_DAPM_SPK("Ext Spk Bottom", msm8960_single_ended_spkramp_event),
-	SND_SOC_DAPM_SPK("Ext Spk Top", msm8960_single_ended_spkramp_event),
-
-	SND_SOC_DAPM_MIC("Handset Mic", msm8960_handset_mic_event),
-	SND_SOC_DAPM_MIC("Headset Mic", NULL),
-	SND_SOC_DAPM_MIC("Secondary Mic", msm8960_handset_mic_event),
-
-};
-
-static const struct snd_soc_dapm_widget blue_msm8960_dapm_widgets_no_pmic[] = {
+static const struct snd_soc_dapm_widget viskan_msm8960_dapm_widgets[] = {
 
 	SND_SOC_DAPM_SUPPLY("MCLK",  SND_SOC_NOPM, 0, 0,
 	msm8960_mclk_event, SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
@@ -604,8 +580,7 @@ static const struct snd_soc_dapm_widget blue_msm8960_dapm_widgets_no_pmic[] = {
 
 	SND_SOC_DAPM_MIC("Handset Mic", NULL),
 	SND_SOC_DAPM_MIC("Headset Mic", NULL),
-	SND_SOC_DAPM_MIC("Secondary Mic", NULL),
-
+        SND_SOC_DAPM_MIC("Secondary Mic", NULL),
 };
 
 static const struct snd_soc_dapm_widget msm8960_dapm_widgets[] = {
@@ -635,7 +610,7 @@ static const struct snd_soc_dapm_widget msm8960_dapm_widgets[] = {
 
 };
 
-static const struct snd_soc_dapm_route blue_audio_map[] = {
+static const struct snd_soc_dapm_route viskan_audio_map[] = {
 
 	{"RX_BIAS", NULL, "MCLK"},
 	{"LDO_H", NULL, "MCLK"},
@@ -653,7 +628,6 @@ static const struct snd_soc_dapm_route blue_audio_map[] = {
 
 	{"AMIC3", NULL, "MIC BIAS4 External"},
 	{"MIC BIAS4 External", NULL, "Secondary Mic"},
-
 };
 
 static const struct snd_soc_dapm_route common_audio_map[] = {
@@ -945,7 +919,7 @@ static void *def_tabla_mbhc_cal(void)
 #undef S
 #define S(X, Y) ((TABLA_MBHC_CAL_PLUG_TYPE_PTR(tabla_cal)->X) = (Y))
 	S(v_no_mic, 73);
-	S(v_hs_max, 2630);
+	S(v_hs_max, viskan_mbhc_data.v_hs_max);
 #undef S
 #define S(X, Y) ((TABLA_MBHC_CAL_BTN_DET_PTR(tabla_cal)->X) = (Y))
 	S(c[0], 62);
@@ -1118,13 +1092,13 @@ end:
 
 static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 {
-	int err = 0, use_pmic;
+	int err;
 	struct snd_soc_codec *codec = rtd->codec;
 	struct snd_soc_dapm_context *dapm = &codec->dapm;
 	struct snd_soc_dai *cpu_dai = rtd->cpu_dai;
 	struct pm_gpio jack_gpio_cfg = {
 		.direction = PM_GPIO_DIR_IN,
-		.pull = PM_GPIO_PULL_NO,
+		.pull = PM_GPIO_PULL_UP_1P5,
 		.function = PM_GPIO_FUNC_NORMAL,
 		.vin_sel = 2,
 		.inv_int_pol = 0,
@@ -1137,52 +1111,32 @@ static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 		bottom_spk_pamp_gpio = (PM8921_GPIO_PM_TO_SYS(18));
 	}
 
-#ifdef CONFIG_INPUT_SIMPLE_REMOTE
-	use_pmic = 1;
-#else
-	use_pmic = 0;
-#endif /* CONFIG_INPUT_SIMPLE_REMOTE */
+	snd_soc_dapm_new_controls(dapm, viskan_msm8960_dapm_widgets,
+				ARRAY_SIZE(viskan_msm8960_dapm_widgets));
 
-#ifdef CONFIG_INPUT_MBHC_MIC_BIAS_SWITCHING_GPIO
-	use_pmic = msm8960_read_is_pmic_used();
-#endif /* CONFIG_INPUT_MBHC_MIC_BIAS_SWITCHING_GPIO */
-
-	if (use_pmic) {
-		pr_debug("%s: Enables PMIC.\n", __func__);
-		snd_soc_dapm_new_controls(dapm, blue_msm8960_dapm_widgets,
-					ARRAY_SIZE(blue_msm8960_dapm_widgets));
-	} else {
-		pr_debug("%s: Does NOT enable PMIC.\n", __func__);
-		snd_soc_dapm_new_controls(dapm,
-				blue_msm8960_dapm_widgets_no_pmic,
-				ARRAY_SIZE(blue_msm8960_dapm_widgets_no_pmic));
-	}
-
-	snd_soc_dapm_add_routes(dapm, blue_audio_map,
-		ARRAY_SIZE(blue_audio_map));
+	snd_soc_dapm_add_routes(dapm, viskan_audio_map,
+		ARRAY_SIZE(viskan_audio_map));
 
 	snd_soc_dapm_enable_pin(dapm, "Ext Spk Bottom");
 	snd_soc_dapm_enable_pin(dapm, "Ext Spk Top");
 
 	snd_soc_dapm_sync(dapm);
 
-	if (!use_pmic) {
-		err = snd_soc_jack_new(codec, "Headset Jack",
+	err = snd_soc_jack_new(codec, "Headset Jack",
 			       (SND_JACK_HEADSET | SND_JACK_LINEOUT |
 				SND_JACK_OC_HPHL | SND_JACK_OC_HPHR |
 				SND_JACK_UNSUPPORTED),
-			       &hs_jack);
-		if (err) {
-			pr_err("failed to create new jack\n");
-			return err;
-		}
+				&hs_jack);
+	if (err) {
+		pr_err("failed to create new jack\n");
+		return err;
+	}
 
-		err = snd_soc_jack_new(codec, "Button Jack",
+	err = snd_soc_jack_new(codec, "Button Jack",
 			       TABLA_JACK_BUTTON_MASK, &button_jack);
-		if (err) {
-			pr_err("failed to create new jack\n");
-			return err;
-		}
+	if (err) {
+		pr_err("failed to create new jack\n");
+		return err;
 	}
 
 	codec_clk = clk_get(cpu_dai->dev, "osr_clk");
@@ -1190,32 +1144,27 @@ static int msm8960_audrx_init(struct snd_soc_pcm_runtime *rtd)
 	if (machine_is_msm8960_cdp())
 		mbhc_cfg.swap_gnd_mic = msm8960_swap_gnd_mic;
 
-	if (hs_detect_use_gpio && !use_pmic) {
-		dev_dbg(cpu_dai->dev, "%s: Using MBHC+GPIO-detect on gpio %d",
-			__func__, JACK_DETECT_GPIO);
+	if (hs_detect_use_gpio) {
 		mbhc_cfg.gpio = PM8921_GPIO_PM_TO_SYS(JACK_DETECT_GPIO);
 		mbhc_cfg.gpio_irq = JACK_DETECT_INT;
-		if (hs_detect_extn_cable)
+		mbhc_cfg.detect_extn_cable = viskan_mbhc_data.hs_detect_extn_cable;
+		if (msm8960_hs_detect_extn_cable)
 			mbhc_cfg.detect_extn_cable = true;
-	} else {
-		pr_debug("%s: Does not use MBHC+GPIO-detect", __func__);
 	}
 
 	if (mbhc_cfg.gpio) {
 		err = pm8xxx_gpio_config(mbhc_cfg.gpio, &jack_gpio_cfg);
 		if (err) {
-			pr_err("%s: pm8xxx_gpio_config failed %d\n", __func__,
-			       err);
+			pr_err("%s: pm8xxx_gpio_config JACK_DETECT failed %d\n",
+			       __func__, err);
 			return err;
 		}
 	}
 
 	mbhc_cfg.read_fw_bin = hs_detect_use_firmware;
 
-#ifdef CONFIG_INPUT_MBHC_HEADSET_CONTROL
-	if (!use_pmic)
-		err = tabla_hs_detect(codec, &mbhc_cfg);
-#endif
+	err = tabla_hs_detect(codec, &mbhc_cfg);
+
 	return err;
 }
 
@@ -1928,7 +1877,7 @@ static int __init msm8960_audio_init(void)
 {
 	int ret;
 
-	if (!cpu_is_msm8960() && !cpu_is_msm8960ab()) {
+	if (!soc_class_is_msm8960()) {
 		pr_debug("%s: Not the right machine type\n", __func__);
 		return -ENODEV ;
 	}
@@ -1979,6 +1928,9 @@ static int __init msm8960_audio_init(void)
 		return ret;
 	}
 
+
+
+
 	mutex_init(&cdc_mclk_mutex);
 	atomic_set(&auxpcm_rsc_ref, 0);
 	return ret;
@@ -1988,7 +1940,7 @@ module_init(msm8960_audio_init);
 
 static void __exit msm8960_audio_exit(void)
 {
-	if (!cpu_is_msm8960() && !cpu_is_msm8960ab()) {
+	if (!soc_class_is_msm8960()) {
 		pr_debug("%s: Not the right machine type\n", __func__);
 		return ;
 	}
