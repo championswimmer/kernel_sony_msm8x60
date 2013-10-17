@@ -115,6 +115,16 @@ int msm_mctl_check_pp(struct msm_cam_media_controller *p_mctl,
 		if (p_mctl->pp_info.pp_ctrl.pp_msg_type == OUTPUT_TYPE_T)
 			*pp_type = OUTPUT_TYPE_T;
 		break;
+<<<<<<< HEAD
+=======
+	case MSM_V4L2_EXT_CAPTURE_MODE_RDI:
+		pp_key = PP_RDI_PREV;
+		if (p_mctl->pp_info.pp_ctrl.pp_msg_type & OUTPUT_TYPE_R)
+			*pp_type = OUTPUT_TYPE_R;
+		if (p_mctl->pp_info.pp_key & pp_key)
+			*pp_divert_type = OUTPUT_TYPE_R;
+		break;
+>>>>>>> e576617... Restore Sony camera driver
 	default:
 		break;
 	}
@@ -875,9 +885,13 @@ int msm_mctl_pp_release_free_frame(
 			__func__);
 		return -EINVAL;
 	}
+<<<<<<< HEAD
 
 	rc = msm_mctl_release_free_buf(p_mctl, pcam_inst,
 					image_mode, &free_buf);
+=======
+	rc = msm_mctl_release_free_buf(p_mctl, pcam_inst, &free_buf);
+>>>>>>> e576617... Restore Sony camera driver
 	D("%s: release free buf, rc = %d, phy = 0x%x",
 		__func__, rc, free_buf.ch_paddr[0]);
 
@@ -914,7 +928,20 @@ int msm_mctl_pp_done(
 		return -EFAULT;
 
 	spin_lock_irqsave(&p_mctl->pp_info.lock, flags);
+<<<<<<< HEAD
 	image_mode = msm_mctl_pp_path_to_img_mode(frame.path);
+=======
+	if (frame.inst_handle) {
+		buf_handle.buf_lookup_type = BUF_LOOKUP_BY_INST_HANDLE;
+		buf_handle.inst_handle = frame.inst_handle;
+		image_mode = GET_IMG_MODE(frame.inst_handle);
+	} else {
+		buf_handle.buf_lookup_type = BUF_LOOKUP_BY_IMG_MODE;
+		buf_handle.image_mode =
+			msm_mctl_pp_path_to_img_mode(frame.path);
+		image_mode = buf_handle.image_mode;
+	}
+>>>>>>> e576617... Restore Sony camera driver
 	if (image_mode < 0) {
 		pr_err("%s Invalid image mode\n", __func__);
 		return image_mode;
@@ -940,8 +967,16 @@ int msm_mctl_pp_done(
 			buf.ch_paddr[0] = frame.sp.phy_addr + frame.sp.y_off;
 	}
 	spin_unlock_irqrestore(&p_mctl->pp_info.lock, flags);
+<<<<<<< HEAD
 	/* here buf.addr is phy_addr */
 	rc = msm_mctl_buf_done_pp(p_mctl, image_mode, &buf, dirty, 0);
+=======
+
+	ret_frame.dirty = dirty;
+	ret_frame.node_type = 0;
+	ret_frame.timestamp = frame.timestamp;
+	rc = msm_mctl_buf_done_pp(p_mctl, &buf_handle, &buf, &ret_frame);
+>>>>>>> e576617... Restore Sony camera driver
 	return rc;
 }
 
@@ -990,6 +1025,13 @@ int msm_mctl_pp_divert_done(
 		buf.ch_paddr[0] = frame.sp.phy_addr + frame.sp.y_off;
 
 	spin_unlock_irqrestore(&p_mctl->pp_info.lock, flags);
+<<<<<<< HEAD
+=======
+
+	ret_frame.dirty = 0;
+	ret_frame.node_type = frame.node_type;
+	ret_frame.timestamp = frame.timestamp;
+>>>>>>> e576617... Restore Sony camera driver
 	D("%s Frame done id: %d\n", __func__, frame.frame_id);
 	rc = msm_mctl_buf_done_pp(p_mctl, image_mode,
 		&buf, dirty, frame.node_type);

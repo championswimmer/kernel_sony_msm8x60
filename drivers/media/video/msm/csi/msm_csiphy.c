@@ -123,6 +123,7 @@ static irqreturn_t msm_csiphy_irq(int irq_num, void *data)
 	uint32_t irq;
 	struct csiphy_device *csiphy_dev = data;
 
+<<<<<<< HEAD
 	irq = msm_camera_io_r(
 		csiphy_dev->base + MIPI_CSIPHY_INTERRUPT_STATUS0_ADDR);
 	msm_camera_io_w(irq,
@@ -159,6 +160,25 @@ static irqreturn_t msm_csiphy_irq(int irq_num, void *data)
 		__func__, csiphy_dev->pdev->id, irq);
 	msm_camera_io_w(0x1, csiphy_dev->base + 0x164);
 	msm_camera_io_w(0x0, csiphy_dev->base + 0x164);
+=======
+	for (i = 0; i < 8; i++) {
+		irq = msm_camera_io_r(
+			csiphy_dev->base +
+			MIPI_CSIPHY_INTERRUPT_STATUS0_ADDR + 0x4*i);
+		msm_camera_io_w(irq,
+			csiphy_dev->base +
+			MIPI_CSIPHY_INTERRUPT_CLEAR0_ADDR + 0x4*i);
+		pr_err("%s MIPI_CSIPHY%d_INTERRUPT_STATUS%d = 0x%x\n",
+			 __func__, csiphy_dev->pdev->id, i, irq);
+		msm_camera_io_w(0x1, csiphy_dev->base +
+			MIPI_CSIPHY_GLBL_IRQ_CMD_ADDR);
+		msm_camera_io_w(0x0, csiphy_dev->base +
+			MIPI_CSIPHY_GLBL_IRQ_CMD_ADDR);
+		msm_camera_io_w(0x0,
+			csiphy_dev->base +
+			MIPI_CSIPHY_INTERRUPT_CLEAR0_ADDR + 0x4*i);
+	}
+>>>>>>> e576617... Restore Sony camera driver
 	return IRQ_HANDLED;
 }
 

@@ -250,10 +250,23 @@ static void msm_vb2_ops_buf_cleanup(struct vb2_buffer *vb)
 		}
 		spin_unlock_irqrestore(&pcam_inst->vq_irqlock, flags);
 	}
+<<<<<<< HEAD
 	pmctl = msm_camera_get_mctl(pcam->mctl_handle);
 	for (i = 0; i < vb->num_planes; i++) {
 		mem = vb2_plane_cookie(vb, i);
 		videobuf2_pmem_contig_user_put(mem, pmctl->client);
+=======
+	pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
+	if (pmctl == NULL) {
+		pr_err("%s No mctl found\n", __func__);
+		buf->state = MSM_BUFFER_STATE_UNUSED;
+		return;
+	}
+	for (i = 0; i < vb->num_planes; i++) {
+		mem = vb2_plane_cookie(vb, i);
+		videobuf2_pmem_contig_user_put(mem, pmctl->client,
+			pmctl->domain_num);
+>>>>>>> e576617... Restore Sony camera driver
 	}
 	buf->state = MSM_BUFFER_STATE_UNUSED;
 }
@@ -415,6 +428,13 @@ int msm_mctl_buf_done_proc(
 			buf->vidbuf.v4l2_buf.sequence = *frame_id;
 		msm_mctl_gettimeofday(
 			&buf->vidbuf.v4l2_buf.timestamp);
+<<<<<<< HEAD
+=======
+	} else {
+		D("%s Copying timestamp as %ld.%ld", __func__,
+			cam_ts->timestamp.tv_sec, cam_ts->timestamp.tv_usec);
+		buf->vidbuf.v4l2_buf.timestamp = cam_ts->timestamp;
+>>>>>>> e576617... Restore Sony camera driver
 	}
 	vb2_buffer_done(&buf->vidbuf, VB2_BUF_STATE_DONE);
 	return 0;
@@ -520,6 +540,7 @@ struct msm_cam_v4l2_dev_inst *msm_mctl_get_pcam_inst(
 				pcam_inst = pcam->dev_inst[idx];
 				D("%s Found instance %p in video device\n",
 				__func__, pcam_inst);
+<<<<<<< HEAD
 			}
 		} else {
 			if (pcam->mctl_node.dev_inst_map[image_mode]) {
@@ -534,6 +555,48 @@ struct msm_cam_v4l2_dev_inst *msm_mctl_get_pcam_inst(
 				D("%s Found instance %p in video device\n",
 				__func__, pcam_inst);
 			}
+=======
+		}
+	}
+	return pcam_inst;
+}
+
+struct msm_cam_v4l2_dev_inst *msm_mctl_get_pcam_inst(
+				struct msm_cam_media_controller *pmctl,
+				struct msm_cam_buf_handle *buf_handle)
+{
+	struct msm_cam_v4l2_dev_inst *pcam_inst = NULL;
+	struct msm_cam_v4l2_device *pcam = pmctl->pcam_ptr;
+	int idx;
+
+	/* Get the pcam instance on based on the following rules:
+	 * If the lookup type is
+	 * - By instance handle:
+	 *    Either mctl_pp inst idx or video inst idx should be set.
+	 *    Try to get the MCTL_PP inst idx first, if its not set,
+	 *    fall back to video inst idx. Once we get the inst idx,
+	 *    get the pcam_inst from the corresponding dev_inst[] map.
+	 *    If neither are set, its a serious error, trigger a BUG_ON.
+	 * - By image mode:(Legacy usecase)
+	 *    If vfe is in configured in snapshot mode, first check if
+	 *    mctl pp node has a instance created for this image mode
+	 *    and if there is a buffer queued for that instance.
+	 *    If so, return that instance, otherwise get the pcam instance
+	 *    for this image_mode from the video instance.
+	 *    If the vfe is configured in any other mode, then first check
+	 *    if mctl pp node has a instance created for this image mode,
+	 *    otherwise get the pcam instance for this image mode from the
+	 *    video instance.
+	 */
+	if (buf_handle->buf_lookup_type == BUF_LOOKUP_BY_INST_HANDLE) {
+		idx = GET_MCTLPP_INST_IDX(buf_handle->inst_handle);
+		if (idx > MSM_DEV_INST_MAX) {
+			idx = GET_VIDEO_INST_IDX(buf_handle->inst_handle);
+			BUG_ON(idx > MSM_DEV_INST_MAX);
+			pcam_inst = pcam->dev_inst[idx];
+		} else {
+			pcam_inst = pcam->mctl_node.dev_inst[idx];
+>>>>>>> e576617... Restore Sony camera driver
 		}
 	} else
 		pr_err("%s Invalid image mode %d. Return NULL\n",
@@ -564,7 +627,11 @@ int msm_mctl_reserve_free_buf(
 	 * If the preferred camera instance is NULL, get the
 	 * camera instance using the image mode passed */
 	if (!pcam_inst)
+<<<<<<< HEAD
 		pcam_inst = msm_mctl_get_pcam_inst(pmctl, image_mode);
+=======
+		pcam_inst = msm_mctl_get_pcam_inst(pmctl, buf_handle);
+>>>>>>> e576617... Restore Sony camera driver
 
 	if (!pcam_inst || !pcam_inst->streamon) {
 		pr_err("%s: stream is turned off\n", __func__);
@@ -683,8 +750,15 @@ int msm_mctl_buf_done_pp(struct msm_cam_media_controller *pmctl,
 	}
 
 	D("%s:inst=0x%p, paddr=0x%x, dirty=%d",
+<<<<<<< HEAD
 		__func__, pcam_inst, frame->ch_paddr[0], dirty);
 	if (dirty)
+=======
+		__func__, pcam_inst, frame->ch_paddr[0], ret_frame->dirty);
+	cam_ts.present = 1;
+	cam_ts.timestamp = ret_frame->timestamp;
+	if (ret_frame->dirty)
+>>>>>>> e576617... Restore Sony camera driver
 		/* the frame is dirty, not going to disptach to app */
 		rc = msm_mctl_release_free_buf(pmctl, pcam_inst,
 						image_mode, frame);

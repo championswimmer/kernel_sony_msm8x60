@@ -565,6 +565,12 @@ enum msm_bus_perf_setting {
 	S_STEREO_VIDEO,
 	S_STEREO_CAPTURE,
 	S_DEFAULT,
+<<<<<<< HEAD
+=======
+	S_LIVESHOT,
+	S_DUAL,
+	S_ADV_VIDEO,
+>>>>>>> e576617... Restore Sony camera driver
 	S_EXIT
 };
 

@@ -100,15 +100,33 @@ static int msm_ispif_intf_reset(uint8_t intfmask)
 			break;
 
 		case RDI0:
+<<<<<<< HEAD
 			data = (0x1 << STROBED_RST_EN) +
 				(0x1 << RDI_VFE_RST_STB)  +
 				(0x1 << RDI_CSID_RST_STB);
+=======
+			data |= (0x1 << RDI_0_VFE_RST_STB) |
+				(0x1 << RDI_0_CSID_RST_STB);
+			break;
+
+		case PIX1:
+			data |= (0x1 << PIX_1_VFE_RST_STB) |
+				(0x1 << PIX_1_CSID_RST_STB);
+>>>>>>> e576617... Restore Sony camera driver
 			break;
 
 		case RDI1:
 			data = (0x1 << STROBED_RST_EN) +
 				(0x1 << RDI_1_VFE_RST_STB) +
 				(0x1 << RDI_1_CSID_RST_STB);
+<<<<<<< HEAD
+=======
+			break;
+
+		case RDI2:
+			data |= (0x1 << RDI_2_VFE_RST_STB) |
+				(0x1 << RDI_2_CSID_RST_STB);
+>>>>>>> e576617... Restore Sony camera driver
 			break;
 
 		default:
@@ -439,6 +457,38 @@ static void ispif_process_irq(struct ispif_irq_status *out)
 	}
 	qcmd->ispifInterruptStatus0 = out->ispifIrqStatus0;
 	qcmd->ispifInterruptStatus1 = out->ispifIrqStatus1;
+<<<<<<< HEAD
+=======
+	qcmd->ispifInterruptStatus2 = out->ispifIrqStatus2;
+
+	if (qcmd->ispifInterruptStatus0 &
+			ISPIF_IRQ_STATUS_PIX_SOF_MASK) {
+			CDBG("%s: ispif PIX irq status", __func__);
+			ispif->pix_sof_count++;
+			v4l2_subdev_notify(&ispif->subdev,
+				NOTIFY_VFE_PIX_SOF_COUNT,
+				(void *)&ispif->pix_sof_count);
+	}
+
+	if (qcmd->ispifInterruptStatus0 &
+			ISPIF_IRQ_STATUS_RDI0_SOF_MASK) {
+			CDBG("%s: ispif RDI0 irq status", __func__);
+			ispif->rdi0_sof_count++;
+			send_rdi_sof(ispif, RDI_0, ispif->rdi0_sof_count);
+	}
+	if (qcmd->ispifInterruptStatus1 &
+		ISPIF_IRQ_STATUS_RDI1_SOF_MASK) {
+		CDBG("%s: ispif RDI1 irq status", __func__);
+		ispif->rdi1_sof_count++;
+		send_rdi_sof(ispif, RDI_1, ispif->rdi1_sof_count);
+	}
+	if (qcmd->ispifInterruptStatus2 &
+		ISPIF_IRQ_STATUS_RDI2_SOF_MASK) {
+		CDBG("%s: ispif RDI2 irq status", __func__);
+		ispif->rdi2_sof_count++;
+		send_rdi_sof(ispif, RDI_2, ispif->rdi2_sof_count);
+	}
+>>>>>>> e576617... Restore Sony camera driver
 
 	spin_lock_irqsave(&ispif_tasklet_lock, flags);
 	list_add_tail(&qcmd->list, &ispif_tasklet_q);
@@ -459,9 +509,18 @@ static inline void msm_ispif_read_irq_status(struct ispif_irq_status *out)
 		ispif->base + ISPIF_IRQ_CLEAR_ADDR);
 	msm_camera_io_w(out->ispifIrqStatus1,
 		ispif->base + ISPIF_IRQ_CLEAR_1_ADDR);
+<<<<<<< HEAD
 
 	CDBG("ispif->irq: Irq_status0 = 0x%x\n",
 		out->ispifIrqStatus0);
+=======
+	msm_camera_io_w(out->ispifIrqStatus2,
+		ispif->base + ISPIF_IRQ_CLEAR_2_ADDR);
+
+	CDBG("%s: irq vfe0 Irq_status0 = 0x%x, 1 = 0x%x, 2 = 0x%x\n",
+		__func__, out->ispifIrqStatus0, out->ispifIrqStatus1,
+		out->ispifIrqStatus2);
+>>>>>>> e576617... Restore Sony camera driver
 	if (out->ispifIrqStatus0 & ISPIF_IRQ_STATUS_MASK) {
 		if (out->ispifIrqStatus0 & (0x1 << RESET_DONE_IRQ))
 			complete(&ispif->reset_complete);

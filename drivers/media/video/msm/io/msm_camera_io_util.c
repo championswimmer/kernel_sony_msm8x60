@@ -265,14 +265,46 @@ int msm_camera_enable_vreg(struct device *dev, struct camera_vreg_t *cam_vreg,
 			}
 		}
 	} else {
+<<<<<<< HEAD
 		for (i = num_vreg-1; i >= 0; i--)
 			regulator_disable(reg_ptr[i]);
+=======
+		for (i = num_vreg_seq-1; i >= 0; i--) {
+			if (vreg_seq) {
+				j = vreg_seq[i];
+				if (j >= num_vreg)
+					continue;
+			} else
+				j = i;
+			regulator_disable(reg_ptr[j]);
+			if (cam_vreg[j].delay > 20)
+				msleep(cam_vreg[j].delay);
+			else if (cam_vreg[j].delay)
+				usleep_range(cam_vreg[j].delay * 1000,
+					(cam_vreg[j].delay * 1000) + 1000);
+		}
+>>>>>>> e576617... Restore Sony camera driver
 	}
 	return rc;
 disable_vreg:
 	for (i--; i >= 0; i--) {
+<<<<<<< HEAD
 		regulator_disable(reg_ptr[i]);
 		goto disable_vreg;
+=======
+		if (vreg_seq) {
+			j = vreg_seq[i];
+			if (j >= num_vreg)
+				continue;
+		} else
+			j = i;
+		regulator_disable(reg_ptr[j]);
+		if (cam_vreg[j].delay > 20)
+			msleep(cam_vreg[j].delay);
+		else if (cam_vreg[j].delay)
+			usleep_range(cam_vreg[j].delay * 1000,
+				(cam_vreg[j].delay * 1000) + 1000);
+>>>>>>> e576617... Restore Sony camera driver
 	}
 	return rc;
 }

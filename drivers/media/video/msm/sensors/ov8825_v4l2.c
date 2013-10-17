@@ -11,7 +11,6 @@
  *
  */
 
-#include <linux/module.h>
 #include "msm_sensor.h"
 #include "msm.h"
 #define SENSOR_NAME "ov8825"
@@ -237,6 +236,10 @@ static struct msm_camera_i2c_reg_conf ov8825_recommend_settings[] = {
 	{0x3619, 0x00},
 	{0x361a, 0xB0},
 	{0x361b, 0x04},
+<<<<<<< HEAD
+=======
+	{0x361c, 0x07},
+>>>>>>> e576617... Restore Sony camera driver
 	{0x3701, 0x44},
 	{0x370b, 0x01},
 	{0x370c, 0x50},
@@ -870,8 +873,11 @@ int32_t ov8825_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
 	int32_t rc = 0;
 	static int csi_config;
 
+<<<<<<< HEAD
 	s_ctrl->func_tbl->sensor_stop_stream(s_ctrl);
 	msleep(30);
+=======
+>>>>>>> e576617... Restore Sony camera driver
 	if (update_type == MSM_SENSOR_REG_INIT) {
 		CDBG("Register INIT\n");
 		s_ctrl->curr_csi_params = NULL;
@@ -885,7 +891,10 @@ int32_t ov8825_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
 		usleep_range(10000, 11000);
 		msm_camera_i2c_write(s_ctrl->sensor_i2c_client, 0x100, 0x0,
 		  MSM_CAMERA_I2C_BYTE_DATA);
+<<<<<<< HEAD
 		csi_config = 0;
+=======
+>>>>>>> e576617... Restore Sony camera driver
 	} else if (update_type == MSM_SENSOR_UPDATE_PERIODIC) {
 		CDBG("PERIODIC : %d\n", res);
 		msm_sensor_write_conf_array(
@@ -906,9 +915,12 @@ int32_t ov8825_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
 		v4l2_subdev_notify(&s_ctrl->sensor_v4l2_subdev,
 			NOTIFY_PCLK_CHANGE,
 			&s_ctrl->sensordata->pdata->ioclk.vfe_clk_rate);
+<<<<<<< HEAD
 
 		s_ctrl->func_tbl->sensor_start_stream(s_ctrl);
 		msleep(50);
+=======
+>>>>>>> e576617... Restore Sony camera driver
 	}
 	return rc;
 }

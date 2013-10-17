@@ -1,5 +1,8 @@
 /* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+<<<<<<< HEAD
  * Copyright (C) 2012 Sony Mobile Communications AB.
+=======
+>>>>>>> e576617... Restore Sony camera driver
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -48,7 +51,67 @@ int32_t msm_sensor_adjust_frame_lines(struct msm_sensor_ctrl_t *s_ctrl,
 			output_settings[res].frame_length_lines,
 			exp_fl_lines);
 	}
+<<<<<<< HEAD
 	return 0;
+=======
+	return;
+}
+
+void msm_sensor_adjust_frame_lines2(struct msm_sensor_ctrl_t *s_ctrl)
+{
+	uint16_t cur_line = 0;
+	uint16_t exp_fl_lines = 0;
+	uint8_t int_time[3];
+	if (s_ctrl->sensor_exp_gain_info) {
+		msm_camera_i2c_read_seq(s_ctrl->sensor_i2c_client,
+			s_ctrl->sensor_exp_gain_info->coarse_int_time_addr-1,
+			&int_time[0], 3);
+		cur_line |= int_time[0] << 12;
+		cur_line |= int_time[1] << 4;
+		cur_line |= int_time[2] >> 4;
+		exp_fl_lines = cur_line +
+			s_ctrl->sensor_exp_gain_info->vert_offset;
+		if (exp_fl_lines > s_ctrl->msm_sensor_reg->
+			output_settings[s_ctrl->curr_res].frame_length_lines)
+			msm_camera_i2c_write(s_ctrl->sensor_i2c_client,
+				s_ctrl->sensor_output_reg_addr->
+				frame_length_lines,
+				exp_fl_lines,
+				MSM_CAMERA_I2C_WORD_DATA);
+		CDBG("%s cur_line %x cur_fl_lines %x, exp_fl_lines %x\n",
+			__func__,
+			cur_line,
+			s_ctrl->msm_sensor_reg->
+			output_settings[s_ctrl->curr_res].frame_length_lines,
+			exp_fl_lines);
+	}
+	return;
+}
+
+static void msm_sensor_delay_frames(struct msm_sensor_ctrl_t *s_ctrl)
+{
+	long fps = 0;
+	uint32_t delay = 0;
+
+	if (s_ctrl->curr_res < MSM_SENSOR_INVALID_RES &&
+		s_ctrl->wait_num_frames > 0) {
+		fps = s_ctrl->msm_sensor_reg->
+			output_settings[s_ctrl->curr_res].vt_pixel_clk /
+			s_ctrl->curr_frame_length_lines /
+			s_ctrl->curr_line_length_pclk;
+		if (fps == 0)
+			delay = s_ctrl->min_delay;
+		else
+			delay = (1000 * s_ctrl->wait_num_frames) / fps / Q10;
+	}
+	CDBG("%s fps = %ld, delay = %d, min_delay %d\n", __func__, fps,
+		delay, s_ctrl->min_delay);
+	if (delay > s_ctrl->min_delay)
+		msleep(delay);
+	else if (s_ctrl->min_delay)
+		msleep(s_ctrl->min_delay);
+	return;
+>>>>>>> e576617... Restore Sony camera driver
 }
 
 int32_t msm_sensor_write_init_settings(struct msm_sensor_ctrl_t *s_ctrl)
@@ -107,11 +170,24 @@ int32_t msm_sensor_write_output_settings(struct msm_sensor_ctrl_t *s_ctrl,
 
 void msm_sensor_start_stream(struct msm_sensor_ctrl_t *s_ctrl)
 {
+<<<<<<< HEAD
+=======
+	if (s_ctrl->curr_res >= s_ctrl->msm_sensor_reg->num_conf)
+		return;
+
+	if (s_ctrl->func_tbl->sensor_adjust_frame_lines)
+		s_ctrl->func_tbl->sensor_adjust_frame_lines(s_ctrl);
+
+>>>>>>> e576617... Restore Sony camera driver
 	msm_camera_i2c_write_tbl(
 		s_ctrl->sensor_i2c_client,
 		s_ctrl->msm_sensor_reg->start_stream_conf,
 		s_ctrl->msm_sensor_reg->start_stream_conf_size,
 		s_ctrl->msm_sensor_reg->default_data_type);
+<<<<<<< HEAD
+=======
+	msm_sensor_delay_frames(s_ctrl);
+>>>>>>> e576617... Restore Sony camera driver
 }
 
 void msm_sensor_stop_stream(struct msm_sensor_ctrl_t *s_ctrl)
@@ -159,6 +235,7 @@ int32_t msm_sensor_write_exp_gain1(struct msm_sensor_ctrl_t *s_ctrl,
 	offset = s_ctrl->sensor_exp_gain_info->vert_offset;
 	if (line > (fl_lines - offset))
 		fl_lines = line + offset;
+	fl_lines += (fl_lines & 0x01);
 
 	s_ctrl->func_tbl->sensor_group_hold_on(s_ctrl);
 	msm_camera_i2c_write(s_ctrl->sensor_i2c_client,
@@ -247,8 +324,11 @@ int32_t msm_sensor_setting(struct msm_sensor_ctrl_t *s_ctrl,
 {
 	int32_t rc = 0;
 
+<<<<<<< HEAD
 	s_ctrl->func_tbl->sensor_stop_stream(s_ctrl);
 	msleep(30);
+=======
+>>>>>>> e576617... Restore Sony camera driver
 	if (update_type == MSM_SENSOR_REG_INIT) {
 		s_ctrl->curr_csi_params = NULL;
 		msm_sensor_enable_debugfs(s_ctrl);
@@ -443,8 +523,11 @@ int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 					s_ctrl,
 					cdata.cfg.exp_gain.gain,
 					cdata.cfg.exp_gain.line);
+<<<<<<< HEAD
 			s_ctrl->prev_gain = cdata.cfg.exp_gain.gain;
 			s_ctrl->prev_line = cdata.cfg.exp_gain.line;
+=======
+>>>>>>> e576617... Restore Sony camera driver
 			break;
 
 		case CFG_SET_PICT_EXP_GAIN:
@@ -538,6 +621,25 @@ int32_t msm_sensor_config(struct msm_sensor_ctrl_t *s_ctrl, void __user *argp)
 				rc = -EFAULT;
 			break;
 
+<<<<<<< HEAD
+=======
+		case CFG_POWER_UP:
+			pr_err("%s calling power up\n", __func__);
+			if (s_ctrl->func_tbl->sensor_power_up)
+				rc = s_ctrl->func_tbl->sensor_power_up(s_ctrl);
+			else
+				rc = -EFAULT;
+			break;
+
+		case CFG_POWER_DOWN:
+			if (s_ctrl->func_tbl->sensor_power_down)
+				rc = s_ctrl->func_tbl->sensor_power_down(
+					s_ctrl);
+			else
+				rc = -EFAULT;
+			break;
+
+>>>>>>> e576617... Restore Sony camera driver
 		default:
 			rc = -EFAULT;
 			break;
@@ -794,6 +896,10 @@ int32_t msm_sensor_power(struct v4l2_subdev *sd, int on)
 					pr_err("%s: %s power_down failed\n",
 					__func__,
 					s_ctrl->sensordata->sensor_name);
+<<<<<<< HEAD
+=======
+				s_ctrl->sensor_state = MSM_SENSOR_POWER_DOWN;
+>>>>>>> e576617... Restore Sony camera driver
 			}
 		}
 	} else {

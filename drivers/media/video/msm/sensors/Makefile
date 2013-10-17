@@ -8,7 +8,11 @@ obj-$(CONFIG_OV5647) += ov5647_v4l2.o
 obj-$(CONFIG_OV8825) += ov8825_v4l2.o
 obj-$(CONFIG_IMX074) += imx074_v4l2.o
 obj-$(CONFIG_S5K3L1YX) += s5k3l1yx.o
+<<<<<<< HEAD
 obj-$(CONFIG_IMX091) += imx091.o
+=======
+obj-$(CONFIG_OV8830) += ov8830_v4l2.o
+>>>>>>> e576617... Restore Sony camera driver
 obj-$(CONFIG_OV2720) += ov2720.o
 obj-$(CONFIG_SONY_CAM_MAIN_V4L2) += sony_sensor_main_v4l2.o
 obj-$(CONFIG_SONY_CAM_SUB_V4L2) += sony_sensor_sub_v4l2.o
