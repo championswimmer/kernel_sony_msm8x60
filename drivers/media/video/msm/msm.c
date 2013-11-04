@@ -1,8 +1,5 @@
 /* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
-<<<<<<< HEAD
  * Copyright (C) 2012-2013 Sony Mobile Communications AB.
-=======
->>>>>>> e576617... Restore Sony camera driver
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -612,7 +609,6 @@ static int msm_server_streamoff(struct msm_cam_v4l2_device *pcam, int idx)
 static int msm_server_proc_ctrl_cmd(struct msm_cam_v4l2_device *pcam,
 				 struct v4l2_control *ctrl, int is_set_cmd)
 {
-<<<<<<< HEAD
 	int rc = 0;
 	struct msm_ctrl_cmd ctrlcmd, *tmp_cmd;
 	uint8_t *ctrl_data = NULL;
@@ -635,27 +631,6 @@ static int msm_server_proc_ctrl_cmd(struct msm_cam_v4l2_device *pcam,
 		pr_err("%s could not allocate memory\n", __func__);
 		rc = -ENOMEM;
 		goto end;
-=======
-	int rc = 0, i, j;
-	struct msm_cam_v4l2_dev_inst *pcam_inst;
-	struct msm_cam_media_controller *pmctl;
-	struct msm_cam_v4l2_device *pcam = video_drvdata(f);
-	pcam_inst = container_of(f->private_data,
-		struct msm_cam_v4l2_dev_inst, eventHandle);
-	D("%s\n", __func__);
-	WARN_ON(pctx != f->private_data);
-
-	mutex_lock(&pcam_inst->inst_lock);
-	if (!pcam_inst->vbqueue_initialized && pb->count) {
-		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
-		if (pmctl == NULL) {
-			pr_err("%s Invalid mctl ptr", __func__);
-			return -EINVAL;
-		}
-		pmctl->mctl_vbqueue_init(pcam_inst, &pcam_inst->vid_bufq,
-			pb->type);
-		pcam_inst->vbqueue_initialized = 1;
->>>>>>> e576617... Restore Sony camera driver
 	}
 	tmp_cmd = (struct msm_ctrl_cmd *)ctrl_data;
 	if (copy_from_user((void *)ctrl_data, uptr_cmd,
@@ -1522,19 +1497,6 @@ static int msm_vidbuf_get_path(u32 extendedmode)
 		return OUTPUT_TYPE_R;
 	case MSM_V4L2_EXT_CAPTURE_MODE_RDI1:
 		return OUTPUT_TYPE_R1;
-<<<<<<< HEAD
-=======
-	case MSM_V4L2_EXT_CAPTURE_MODE_AEC:
-		return OUTPUT_TYPE_SAEC;
-	case MSM_V4L2_EXT_CAPTURE_MODE_AF:
-		return OUTPUT_TYPE_SAFC;
-	case MSM_V4L2_EXT_CAPTURE_MODE_AWB:
-		return OUTPUT_TYPE_SAWB;
-	case MSM_V4L2_EXT_CAPTURE_MODE_IHIST:
-		return OUTPUT_TYPE_IHST;
-	case MSM_V4L2_EXT_CAPTURE_MODE_CSTA:
-		return OUTPUT_TYPE_CSTA;
->>>>>>> e576617... Restore Sony camera driver
 	case MSM_V4L2_EXT_CAPTURE_MODE_DEFAULT:
 	case MSM_V4L2_EXT_CAPTURE_MODE_PREVIEW:
 	default:
@@ -1964,7 +1926,6 @@ static int msm_open(struct file *f)
 		server_q_idx = msm_find_free_queue();
 		if (server_q_idx < 0)
 			return server_q_idx;
-<<<<<<< HEAD
 		pcam->server_queue_idx = server_q_idx;
 		queue = &g_server_dev.server_queue[server_q_idx];
 		queue->ctrl_data = kzalloc(sizeof(uint8_t) *
@@ -1981,17 +1942,6 @@ static int msm_open(struct file *f)
 			pr_err("%s: cam_server_open_session failed %d\n",
 			__func__, rc);
 			goto msm_cam_server_open_session_failed;
-=======
-		rc = msm_server_begin_session(pcam, server_q_idx);
-		if (rc < 0) {
-			pr_err("%s error starting server session ", __func__);
-			goto msm_cam_server_begin_session_failed;
-		}
-		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
-		if (!pmctl) {
-			pr_err("%s mctl ptr is null ", __func__);
-			goto msm_cam_server_begin_session_failed;
->>>>>>> e576617... Restore Sony camera driver
 		}
 
 		pmctl = msm_camera_get_mctl(pcam->mctl_handle);
@@ -2047,20 +1997,12 @@ static int msm_open(struct file *f)
 	return rc;
 
 msm_send_open_server_failed:
-<<<<<<< HEAD
 	v4l2_fh_del(&pcam_inst->eventHandle);
 	v4l2_fh_exit(&pcam_inst->eventHandle);
 mctl_event_q_setup_failed:
 	if (pmctl->mctl_release)
 		if (pmctl->mctl_release(pmctl) < 0)
 			pr_err("%s: mctl_release failed\n", __func__);
-=======
-	msm_drain_eventq(&pcam->eventData_q);
-	msm_destroy_v4l2_event_queue(&pcam_inst->eventHandle);
-
-	if (pmctl->mctl_release)
-		pmctl->mctl_release(pmctl);
->>>>>>> e576617... Restore Sony camera driver
 mctl_open_failed:
 	if (pcam->use_count == 1) {
 #ifdef CONFIG_MSM_MULTIMEDIA_USE_ION
@@ -2069,19 +2011,11 @@ mctl_open_failed:
 			kref_put(&pmctl->refcount, msm_release_ion_client);
 		}
 #endif
-<<<<<<< HEAD
 		if (msm_cam_server_close_session(&g_server_dev, pcam) < 0)
 			pr_err("%s: msm_cam_server_close_session failed\n",
 				__func__);
 	}
 msm_cam_server_open_session_failed:
-=======
-		if (msm_server_end_session(pcam) < 0)
-			pr_err("%s: msm_server_end_session failed\n",
-				__func__);
-	}
-msm_cam_server_begin_session_failed:
->>>>>>> e576617... Restore Sony camera driver
 	if (pcam->use_count == 1) {
 		if (queue != NULL) {
 			queue->queue_active = 0;
@@ -2863,7 +2797,6 @@ static int msm_open_config(struct inode *inode, struct file *fp)
 
 static int msm_close_config(struct inode *node, struct file *f)
 {
-<<<<<<< HEAD
 	struct v4l2_event ev;
 	struct v4l2_event_subscription sub;
 	struct msm_isp_event_ctrl *isp_event;
@@ -2891,12 +2824,6 @@ static int msm_close_config(struct inode *node, struct file *f)
 		}
 	}
 	return 0;
-=======
-	struct msm_cam_media_controller *mctl = container_of(ref,
-		struct msm_cam_media_controller, refcount);
-	pr_err("%s Calling ion_client_destroy\n", __func__);
-	ion_client_destroy(mctl->client);
->>>>>>> e576617... Restore Sony camera driver
 }
 
 static struct v4l2_file_operations g_msm_fops = {
@@ -2967,28 +2894,10 @@ static int msm_setup_config_dev(int node, char *device_name)
 	device_config = device_create(msm_class, NULL, devno, NULL, "%s%d",
 		device_name, dev_num);
 
-<<<<<<< HEAD
 	if (IS_ERR(device_config)) {
 		rc = PTR_ERR(device_config);
 		pr_err("%s: error creating device: %d\n", __func__, rc);
 		goto config_setup_fail;
-=======
-	pcam_inst->streamon = 0;
-	pcam->use_count--;
-	pcam->dev_inst_map[pcam_inst->image_mode] = NULL;
-	if (pcam_inst->vbqueue_initialized)
-		vb2_queue_release(&pcam_inst->vid_bufq);
-	D("%s Closing down instance %p ", __func__, pcam_inst);
-	D("%s index %d nodeid %d count %d\n", __func__, pcam_inst->my_index,
-		pcam->vnode_id, pcam->use_count);
-	pcam->dev_inst[pcam_inst->my_index] = NULL;
-	if (pcam_inst->my_index == 0) {
-		mutex_lock(&pcam->event_lock);
-		msm_drain_eventq(&pcam->eventData_q);
-		mutex_unlock(&pcam->event_lock);
-		mutex_destroy(&pcam->event_lock);
-		msm_destroy_v4l2_event_queue(&pcam_inst->eventHandle);
->>>>>>> e576617... Restore Sony camera driver
 	}
 
 	cdev_init(&config_cam->config_cdev, &msm_fops_config);
@@ -3001,16 +2910,11 @@ static int msm_setup_config_dev(int node, char *device_name)
 		goto config_setup_fail;
 	}
 
-<<<<<<< HEAD
 	g_server_dev.config_info.config_dev_name[dev_num] =
 		dev_name(device_config);
 	D("%s Connected config device %s\n", __func__,
 		g_server_dev.config_info.config_dev_name[dev_num]);
 	g_server_dev.config_info.config_dev_id[dev_num] = dev_num;
-=======
-		if (pmctl->mctl_release)
-			pmctl->mctl_release(pmctl);
->>>>>>> e576617... Restore Sony camera driver
 
 	config_cam->config_stat_event_queue.pvdev = video_device_alloc();
 	if (config_cam->config_stat_event_queue.pvdev == NULL) {
@@ -3184,7 +3088,6 @@ int msm_cam_register_subdev_node(struct v4l2_subdev *sd,
 		goto clean_up;
 	}
 
-<<<<<<< HEAD
 	video_set_drvdata(vdev, sd);
 	strlcpy(vdev->name, sd->name, sizeof(vdev->name));
 	vdev->v4l2_dev = &g_server_dev.v4l2_dev;
@@ -3276,45 +3179,6 @@ static int msm_setup_server_dev(struct platform_device *pdev)
 		msm_queue_init(&queue->ctrl_q, "control");
 		msm_queue_init(&queue->eventData_q, "eventdata");
 	}
-=======
-	v4l2_ev = evt_payload.evt;
-	v4l2_ev.id = 0;
-	pcam = mctl->pcam_ptr;
-	ktime_get_ts(&v4l2_ev.timestamp);
-	if (evt_payload.payload_length > 0 && evt_payload.payload != NULL) {
-		mutex_lock(&pcam->event_lock);
-		event_qcmd = kzalloc(sizeof(struct msm_queue_cmd), GFP_KERNEL);
-		if (!event_qcmd) {
-			pr_err("%s Insufficient memory. return", __func__);
-			rc = -ENOMEM;
-			goto event_qcmd_alloc_fail;
-		}
-		payload = kzalloc(evt_payload.payload_length, GFP_KERNEL);
-		if (!payload) {
-			pr_err("%s Insufficient memory. return", __func__);
-			rc = -ENOMEM;
-			goto payload_alloc_fail;
-		}
-		if (copy_from_user(payload,
-				(void __user *)evt_payload.payload,
-				evt_payload.payload_length)) {
-			ERR_COPY_FROM_USER();
-			rc = -EFAULT;
-			goto copy_from_user_failed;
-		}
-		event_qcmd->command = payload;
-		event_qcmd->trans_code = evt_payload.transaction_id;
-		msm_enqueue(&pcam->eventData_q, &event_qcmd->list_eventdata);
-		mutex_unlock(&pcam->event_lock);
-	}
-	v4l2_event_queue(pcam->pvdev, &v4l2_ev);
-	return rc;
-copy_from_user_failed:
-	kfree(payload);
-payload_alloc_fail:
-	kfree(event_qcmd);
-event_qcmd_alloc_fail:
->>>>>>> e576617... Restore Sony camera driver
 	return rc;
 }
 

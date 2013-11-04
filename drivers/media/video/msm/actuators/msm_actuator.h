@@ -87,12 +87,6 @@ struct msm_actuator_ctrl_t {
 	uint32_t total_steps;
 	uint16_t pwd_step;
 	uint16_t initial_code;
-<<<<<<< HEAD
-=======
-	struct msm_camera_i2c_reg_tbl *i2c_reg_tbl;
-	uint16_t i2c_tbl_index;
-	uint32_t curr_hwparams;
->>>>>>> e576617... Restore Sony camera driver
 };
 
 struct msm_actuator_ctrl_t *get_actrl(struct v4l2_subdev *sd);

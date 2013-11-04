@@ -1,5 +1,4 @@
-/* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
- * Copyright (C) 2012 Sony Mobile Communications AB.
+/* Copyright (c) 2011-2012, The Linux Foundation. All rights reserved.
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -126,7 +125,7 @@ static irqreturn_t msm_csid_irq(int irq_num, void *data)
 {
 	uint32_t irq;
 	struct csid_device *csid_dev = data;
-	if (!csid_dev) {
+	if (!csid_dev||!csid_dev->base) {
 		pr_err("%s:%d csid_dev NULL\n", __func__, __LINE__);
 		return IRQ_HANDLED;
 	}
@@ -361,8 +360,8 @@ static int msm_csid_release(struct csid_device *csid_dev)
 	uint8_t core_id = 0;
 
 #if defined(CONFIG_SONY_CAM_V4L2)
-	if (!csid_dev->base)
-		return -EINVAL;
+  if (!csid_dev->base)
+    return -EINVAL;
 #endif
 
 	if (csid_dev->csid_state != CSID_POWER_UP) {
@@ -620,7 +619,7 @@ static int __devinit csid_probe(struct platform_device *pdev)
 csid_no_resource:
 	mutex_destroy(&new_csid_dev->mutex);
 	kfree(new_csid_dev);
-	return 0;
+	return rc;
 }
 
 static const struct of_device_id msm_csid_dt_match[] = {

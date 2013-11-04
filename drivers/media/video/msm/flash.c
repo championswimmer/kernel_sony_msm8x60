@@ -18,11 +18,7 @@
 #include <linux/pwm.h>
 #include <linux/pmic8058-pwm.h>
 #include <linux/hrtimer.h>
-<<<<<<< HEAD
 #include <linux/i2c.h>
-=======
-#include <linux/export.h>
->>>>>>> e576617... Restore Sony camera driver
 #include <mach/pmic.h>
 #include <mach/camera.h>
 #include <mach/gpio.h>
@@ -435,7 +431,6 @@ error:
 		break;
 
 	case MSM_CAMERA_LED_OFF:
-<<<<<<< HEAD
 		if (sc628a_client)
 			rc = flash_i2c_write_b(sc628a_client, 0x02, 0x00);
 		if (tps61310_client)
@@ -452,44 +447,6 @@ error:
 			rc = flash_i2c_write_b(sc628a_client, 0x02, 0x06);
 		if (tps61310_client)
 			rc = flash_i2c_write_b(tps61310_client, 0x01, 0x86);
-=======
-		if (sc628a_client || tps61310_client) {
-			if (sc628a_client) {
-				i2c_client.client = sc628a_client;
-				i2c_client.addr_type = MSM_CAMERA_I2C_BYTE_ADDR;
-				rc = msm_camera_i2c_write(&i2c_client, 0x02,
-					0x00, MSM_CAMERA_I2C_BYTE_DATA);
-			}
-			if (tps61310_client) {
-				i2c_client.client = tps61310_client;
-				i2c_client.addr_type = MSM_CAMERA_I2C_BYTE_ADDR;
-				rc = msm_camera_i2c_write(&i2c_client, 0x01,
-					0x00, MSM_CAMERA_I2C_BYTE_DATA);
-			}
-			gpio_set_value_cansleep(external->led_en, 0);
-			gpio_set_value_cansleep(external->led_flash_en, 0);
-		}
-		break;
-
-	case MSM_CAMERA_LED_LOW:
-		if (sc628a_client || tps61310_client) {
-			gpio_set_value_cansleep(external->led_en, 1);
-			gpio_set_value_cansleep(external->led_flash_en, 1);
-			usleep_range(2000, 3000);
-			if (sc628a_client) {
-				i2c_client.client = sc628a_client;
-				i2c_client.addr_type = MSM_CAMERA_I2C_BYTE_ADDR;
-				rc = msm_camera_i2c_write(&i2c_client, 0x02,
-					0x06, MSM_CAMERA_I2C_BYTE_DATA);
-			}
-			if (tps61310_client) {
-				i2c_client.client = tps61310_client;
-				i2c_client.addr_type = MSM_CAMERA_I2C_BYTE_ADDR;
-				rc = msm_camera_i2c_write(&i2c_client, 0x01,
-					0x86, MSM_CAMERA_I2C_BYTE_DATA);
-			}
-		}
->>>>>>> e576617... Restore Sony camera driver
 		break;
 
 	case MSM_CAMERA_LED_HIGH:

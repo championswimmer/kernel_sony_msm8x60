@@ -1,8 +1,5 @@
 /* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
-<<<<<<< HEAD
  * Copyright (C) 2012 Sony Mobile Communications AB.
-=======
->>>>>>> e576617... Restore Sony camera driver
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -24,10 +21,6 @@
 #include <linux/videodev2.h>
 #include <linux/proc_fs.h>
 #include <linux/vmalloc.h>
-<<<<<<< HEAD
-=======
-#include <linux/wakelock.h>
->>>>>>> e576617... Restore Sony camera driver
 
 #include <media/v4l2-dev.h>
 #include <media/v4l2-ioctl.h>
@@ -197,23 +190,6 @@ static int msm_mctl_set_vfe_output_mode(struct msm_cam_media_controller
 	return rc;
 }
 
-<<<<<<< HEAD
-=======
-static uint8_t msm_sensor_state_check(
-	struct msm_cam_media_controller *p_mctl)
-{
-	struct msm_sensor_ctrl_t *s_ctrl = NULL;
-	if (!p_mctl)
-		return 0;
-	if (!p_mctl->sensor_sdev)
-		return 0;
-	s_ctrl = get_sctrl(p_mctl->sensor_sdev);
-	if (s_ctrl->sensor_state == MSM_SENSOR_POWER_UP)
-		return 1;
-	return 0;
-}
-
->>>>>>> e576617... Restore Sony camera driver
 /* called by the server or the config nodes to handle user space
 	commands*/
 static int msm_mctl_cmd(struct msm_cam_media_controller *p_mctl,
@@ -387,12 +363,7 @@ static int msm_mctl_cmd(struct msm_cam_media_controller *p_mctl,
 			ERR_COPY_FROM_USER();
 			rc = -EFAULT;
 		} else {
-<<<<<<< HEAD
 			rc = msm_flash_ctrl(p_mctl->sdata, &flash_info);
-=======
-			if (msm_sensor_state_check(p_mctl))
-				rc = msm_flash_ctrl(p_mctl->sdata, &flash_info);
->>>>>>> e576617... Restore Sony camera driver
 		}
 		break;
 	}
@@ -477,7 +448,6 @@ static int msm_mctl_register_subdevs(struct msm_cam_media_controller *p_mctl,
 	if (rc < 0)
 			goto out;
 
-<<<<<<< HEAD
 	/* register vfe subdev */
 	driver = driver_find(MSM_VFE_DRV_NAME, &platform_bus_type);
 	if (!driver)
@@ -503,14 +473,6 @@ static int msm_mctl_register_subdevs(struct msm_cam_media_controller *p_mctl,
 			goto out;
 
 		p_mctl->vpe_sdev = dev_get_drvdata(dev);
-=======
-	default:
-		/* ISP config*/
-		D("%s:%d: go to default. Calling msm_isp_config\n",
-			__func__, __LINE__);
-		rc = p_mctl->isp_config(p_mctl, cmd, arg);
-		break;
->>>>>>> e576617... Restore Sony camera driver
 	}
 #endif
 	rc = 0;
@@ -725,7 +687,6 @@ static int msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 	struct msm_sensor_ctrl_t *s_ctrl = get_sctrl(p_mctl->sensor_sdev);
 	struct msm_camera_sensor_info *sinfo =
 		(struct msm_camera_sensor_info *) s_ctrl->sensordata;
-<<<<<<< HEAD
 	struct msm_camera_device_platform_data *camdev = sinfo->pdata;
 
 	v4l2_subdev_call(p_mctl->sensor_sdev, core, ioctl,
@@ -774,50 +735,6 @@ static int msm_mctl_release(struct msm_cam_media_controller *p_mctl)
 	pm_qos_update_request(&p_mctl->idle_pm_qos, PM_QOS_DEFAULT_VALUE);
 	wake_unlock(&p_mctl->suspend_lock);
 	return rc;
-=======
-	v4l2_subdev_call(p_mctl->sensor_sdev, core, ioctl,
-		VIDIOC_MSM_SENSOR_RELEASE, NULL);
-
-	if (p_mctl->csic_sdev) {
-		v4l2_subdev_call(p_mctl->csic_sdev, core, ioctl,
-			VIDIOC_MSM_CSIC_RELEASE, NULL);
-	}
-
-	if (p_mctl->vpe_sdev) {
-		v4l2_subdev_call(p_mctl->vpe_sdev, core, ioctl,
-			VIDIOC_MSM_VPE_RELEASE, NULL);
-	}
-
-	if (p_mctl->axi_sdev) {
-		v4l2_set_subdev_hostdata(p_mctl->axi_sdev, p_mctl);
-		v4l2_subdev_call(p_mctl->axi_sdev, core, ioctl,
-			VIDIOC_MSM_AXI_RELEASE, NULL);
-	}
-
-	if (p_mctl->csid_sdev) {
-		v4l2_subdev_call(p_mctl->csid_sdev, core, ioctl,
-			VIDIOC_MSM_CSID_RELEASE, NULL);
-	}
-
-	if (p_mctl->csiphy_sdev) {
-		v4l2_subdev_call(p_mctl->csiphy_sdev, core, ioctl,
-			VIDIOC_MSM_CSIPHY_RELEASE,
-			sinfo->sensor_platform_info->csi_lane_params);
-	}
-
-	if (p_mctl->act_sdev) {
-		v4l2_subdev_call(p_mctl->act_sdev, core, s_power, 0);
-		p_mctl->act_sdev = NULL;
-	}
-
-	v4l2_subdev_call(p_mctl->sensor_sdev, core, s_power, 0);
-
-	pm_qos_update_request(&p_mctl->pm_qos_req_list,
-				PM_QOS_DEFAULT_VALUE);
-	pm_qos_remove_request(&p_mctl->pm_qos_req_list);
-
-	wake_unlock(&p_mctl->wake_lock);
->>>>>>> e576617... Restore Sony camera driver
 }
 
 int msm_mctl_init_user_formats(struct msm_cam_v4l2_device *pcam)
@@ -1218,19 +1135,6 @@ static int msm_mctl_v4l2_reqbufs(struct file *f, void *pctx,
 	D("%s\n", __func__);
 	WARN_ON(pctx != f->private_data);
 	mutex_lock(&pcam_inst->inst_lock);
-<<<<<<< HEAD
-=======
-	if (!pcam_inst->vbqueue_initialized && pb->count) {
-		pmctl = msm_cam_server_get_mctl(pcam->mctl_handle);
-		if (pmctl == NULL) {
-			pr_err("%s Invalid mctl ptr", __func__);
-			return -EINVAL;
-		}
-		pmctl->mctl_vbqueue_init(pcam_inst, &pcam_inst->vid_bufq,
-			pb->type);
-		pcam_inst->vbqueue_initialized = 1;
-	}
->>>>>>> e576617... Restore Sony camera driver
 	rc = vb2_reqbufs(&pcam_inst->vid_bufq, pb);
 	if (rc < 0) {
 		pr_err("%s reqbufs failed %d ", __func__, rc);

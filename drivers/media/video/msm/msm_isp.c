@@ -316,7 +316,6 @@ static int msm_isp_notify_vfe(struct v4l2_subdev *sd,
 		uint8_t msgid;
 		struct isp_msg_output *isp_output =
 				(struct isp_msg_output *)arg;
-<<<<<<< HEAD
 		switch (isp_output->output_id) {
 		case MSG_ID_OUTPUT_P:
 			msgid = VFE_MSG_OUTPUT_P;
@@ -359,50 +358,6 @@ static int msm_isp_notify_vfe(struct v4l2_subdev *sd,
 			BUG_ON(msgid < 0);
 			msm_mctl_buf_done(pmctl, msgid,
 				&buf, isp_output->frameCounter);
-=======
-		if (!isp_output->buf.inst_handle) {
-			switch (isp_output->output_id) {
-			case MSG_ID_OUTPUT_P:
-				msgid = VFE_MSG_OUTPUT_P;
-				break;
-			case MSG_ID_OUTPUT_V:
-				msgid = VFE_MSG_OUTPUT_V;
-				break;
-			case MSG_ID_OUTPUT_T:
-				msgid = VFE_MSG_OUTPUT_T;
-				break;
-			case MSG_ID_OUTPUT_S:
-				msgid = VFE_MSG_OUTPUT_S;
-				break;
-			case MSG_ID_OUTPUT_PRIMARY:
-				msgid = VFE_MSG_OUTPUT_PRIMARY;
-				break;
-			case MSG_ID_OUTPUT_SECONDARY:
-				msgid = VFE_MSG_OUTPUT_SECONDARY;
-				break;
-			case MSG_ID_OUTPUT_TERTIARY1:
-				msgid = VFE_MSG_OUTPUT_TERTIARY1;
-				break;
-			case MSG_ID_OUTPUT_TERTIARY2:
-				msgid = VFE_MSG_OUTPUT_TERTIARY2;
-				break;
-
-			default:
-				pr_err("%s: Invalid VFE output id: %d\n",
-					   __func__, isp_output->output_id);
-				rc = -EINVAL;
-				break;
-			}
-			if (!rc) {
-				buf_handle.buf_lookup_type =
-					BUF_LOOKUP_BY_IMG_MODE;
-				buf_handle.image_mode =
-				msm_isp_vfe_msg_to_img_mode(pmctl, msgid);
-			}
-		} else {
-			buf_handle.buf_lookup_type = BUF_LOOKUP_BY_INST_HANDLE;
-			buf_handle.inst_handle = isp_output->buf.inst_handle;
->>>>>>> e576617... Restore Sony camera driver
 		}
 		}
 		break;

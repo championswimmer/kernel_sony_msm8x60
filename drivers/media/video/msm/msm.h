@@ -1,8 +1,5 @@
 /* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
-<<<<<<< HEAD
  * Copyright (C) 2012 Sony Mobile Communications AB.
-=======
->>>>>>> e576617... Restore Sony camera driver
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -66,7 +63,6 @@
 #define MAX_NUM_AXI_DEV 2
 #define MAX_NUM_VPE_DEV 1
 
-<<<<<<< HEAD
 enum msm_cam_subdev_type {
 	CSIPHY_DEV,
 	CSID_DEV,
@@ -81,8 +77,6 @@ enum msm_cam_subdev_type {
 	GESTURE_DEV,
 };
 
-=======
->>>>>>> e576617... Restore Sony camera driver
 /* msm queue management APIs*/
 
 #define msm_dequeue(queue, member) ({	   \
@@ -152,13 +146,7 @@ enum msm_camera_v4l2_subdev_notify {
 	NOTIFY_VFE_MSG_STATS,  /* arg = struct isp_msg_stats */
 	NOTIFY_VFE_MSG_COMP_STATS, /* arg = struct msm_stats_buf */
 	NOTIFY_VFE_BUF_EVT, /* arg = struct msm_vfe_resp */
-<<<<<<< HEAD
 	NOTIFY_VPE_MSG_EVT,
-=======
-	NOTIFY_VFE_ERROR,
-	NOTIFY_VFE_PIX_SOF_COUNT, /*arg = int*/
-	NOTIFY_AXI_RDI_SOF_COUNT, /*arg = struct rdi_count_msg*/
->>>>>>> e576617... Restore Sony camera driver
 	NOTIFY_PCLK_CHANGE, /* arg = pclk */
 	NOTIFY_CSIPHY_CFG, /* arg = msm_camera_csiphy_params */
 	NOTIFY_CSID_CFG, /* arg = msm_camera_csid_params */
@@ -212,35 +200,6 @@ struct msm_isp_color_fmt {
 	enum v4l2_colorspace colorspace;
 };
 
-<<<<<<< HEAD
-=======
-struct msm_cam_return_frame_info {
-	int dirty;
-	int node_type;
-	struct timeval timestamp;
-};
-
-struct msm_cam_timestamp {
-	uint8_t present;
-	struct timeval timestamp;
-};
-
-struct msm_cam_buf_map_info {
-	int fd;
-	uint32_t data_offset;
-	unsigned long paddr;
-	unsigned long len;
-	struct file *file;
-	struct ion_handle *handle;
-};
-
-struct msm_cam_meta_frame {
-	struct msm_pp_frame frame;
-	/* Mapping information per plane */
-	struct msm_cam_buf_map_info map[VIDEO_MAX_PLANES];
-};
-
->>>>>>> e576617... Restore Sony camera driver
 struct msm_mctl_pp_frame_info {
 	int user_cmd;
 	struct msm_pp_frame src_frame;
@@ -377,10 +336,6 @@ struct msm_cam_v4l2_dev_inst {
 	struct img_plane_info plane_info;
 	int vbqueue_initialized;
 	struct mutex inst_lock;
-<<<<<<< HEAD
-=======
-	uint32_t inst_handle;
->>>>>>> e576617... Restore Sony camera driver
 };
 
 struct msm_cam_mctl_node {
@@ -584,15 +539,12 @@ struct msm_frame_buffer *msm_mctl_buf_find(
 	struct msm_cam_v4l2_dev_inst *pcam_inst, int del_buf,
 	int msg_type, struct msm_free_buf *fbuf);
 void msm_mctl_gettimeofday(struct timeval *tv);
-<<<<<<< HEAD
 struct msm_frame_buffer *msm_mctl_get_free_buf(
 		struct msm_cam_media_controller *pmctl,
 		int msg_type);
 int msm_mctl_put_free_buf(
 		struct msm_cam_media_controller *pmctl,
 		int msg_type, struct msm_frame_buffer *buf);
-=======
->>>>>>> e576617... Restore Sony camera driver
 int msm_mctl_check_pp(struct msm_cam_media_controller *p_mctl,
 		int msg_type, int *pp_divert_type, int *pp_type);
 int msm_mctl_do_pp_divert(

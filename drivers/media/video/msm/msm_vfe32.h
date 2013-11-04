@@ -1,8 +1,4 @@
 /* Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe32.h
-=======
- * Copyright (C) 2012 Sony Mobile Communications AB.
->>>>>>> e576617... Restore Sony camera driver:drivers/media/video/msm/vfe/msm_vfe32.h
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 and
@@ -243,15 +239,9 @@ enum vfe_output_state {
 
 #define V32_OPERATION_CFG_LEN     44
 
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe32.h
 #define V32_AXI_OUT_OFF           0x00000038
 #define V32_AXI_OUT_LEN           224
 #define V32_AXI_CH_INF_LEN        32
-=======
-#define V32_AXI_BUS_CMD_OFF       0x00000038
-#define V32_AXI_OUT_OFF           0x0000003C
-#define V32_AXI_OUT_LEN           252
->>>>>>> e576617... Restore Sony camera driver:drivers/media/video/msm/vfe/msm_vfe32.h
 #define V32_AXI_CFG_LEN           47
 #define V32_AXI_BUS_FMT_OFF    1
 #define V32_AXI_BUS_FMT_LEN    4
@@ -804,7 +794,7 @@ struct vfe32_output_ch {
 #define VFE32_IMASK_STATS_IHIST_BUS_OVFL      (0x00000001<<20)
 #define VFE32_IMASK_STATS_SKIN_BHIST_BUS_OVFL (0x00000001<<21)
 #define VFE32_IMASK_AXI_ERROR                 (0x00000001<<22)
-#define VFE32_IMASK_BUS_OVFL_ERROR		0x005FFF00
+
 #define VFE_COM_STATUS 0x000FE000
 
 struct vfe32_output_path {
@@ -907,11 +897,6 @@ struct vfe32_frame_extra {
 
 #define VFE33_DMI_DATA_HI               0x000005A0
 #define VFE33_DMI_DATA_LO               0x000005A4
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe32.h
-=======
-
-#define VFE_AXI_CFG_MASK                0xFFFFFFFF
->>>>>>> e576617... Restore Sony camera driver:drivers/media/video/msm/vfe/msm_vfe32.h
 
 #define VFE32_OUTPUT_MODE_PT			BIT(0)
 #define VFE32_OUTPUT_MODE_S			BIT(1)
@@ -932,63 +917,6 @@ struct vfe_stats_control {
 	uint32_t droppedStatsFrameCount;
 	uint32_t bufToRender;
 };
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe32.h
-=======
-struct axi_ctrl_t;
-struct vfe32_ctrl_type;
-
-struct vfe_share_ctrl_t {
-	void __iomem *vfebase;
-	uint32_t register_total;
-
-	atomic_t vstate;
-	atomic_t handle_common_irq;
-	uint32_t vfeFrameId;
-	uint32_t rdi0FrameId;
-	uint32_t rdi1FrameId;
-	uint32_t rdi2FrameId;
-	uint32_t stats_comp;
-	spinlock_t  sd_notify_lock;
-	spinlock_t  stop_flag_lock;
-	int8_t stop_ack_pending;
-	enum vfe_output_state liveshot_state;
-	uint32_t vfe_capture_count;
-	int32_t rdi0_capture_count;
-	int32_t rdi1_capture_count;
-	uint8_t update_counter;
-
-	uint32_t operation_mode;     /* streaming or snapshot */
-	uint32_t current_mode;
-	struct vfe32_output_path outpath;
-
-	uint16_t port_info;
-	uint8_t stop_immediately;
-	uint8_t sync_abort;
-	uint16_t cmd_type;
-	uint8_t vfe_reset_flag;
-	uint8_t dual_enabled;
-
-	uint8_t axi_ref_cnt;
-	uint16_t comp_output_mode;
-
-	struct completion reset_complete;
-
-	spinlock_t  update_ack_lock;
-	spinlock_t  start_ack_lock;
-
-	struct axi_ctrl_t *axi_ctrl;
-	struct vfe32_ctrl_type *vfe32_ctrl;
-	int8_t start_ack_pending;
-	int8_t update_ack_pending;
-	enum vfe_output_state recording_state;
-
-	atomic_t pix0_update_ack_pending;
-	atomic_t rdi0_update_ack_pending;
-	atomic_t rdi1_update_ack_pending;
-	atomic_t rdi2_update_ack_pending;
-
-};
->>>>>>> e576617... Restore Sony camera driver:drivers/media/video/msm/vfe/msm_vfe32.h
 
 struct axi_ctrl_t {
 	struct v4l2_subdev subdev;
@@ -1009,12 +937,6 @@ struct axi_ctrl_t {
 	struct clk *vfe_clk[3];
 #endif
 	struct tasklet_struct vfe32_tasklet;
-<<<<<<< HEAD:drivers/media/video/msm/msm_vfe32.h
-=======
-	struct vfe_share_ctrl_t *share_ctrl;
-	struct device *iommu_ctx_imgwr;
-	struct device *iommu_ctx_misc;
->>>>>>> e576617... Restore Sony camera driver:drivers/media/video/msm/vfe/msm_vfe32.h
 };
 
 struct vfe32_ctrl_type {

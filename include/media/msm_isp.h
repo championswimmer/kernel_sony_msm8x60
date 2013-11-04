@@ -51,7 +51,7 @@
 #define MSG_ID_AXI_ERROR                32
 #define MSG_ID_CAMIF_OVERFLOW           33
 #define MSG_ID_VIOLATION                34
-#define MSG_ID_VFE_ERROR              35
+#define MSG_ID_CAMIF_ERROR              35
 #define MSG_ID_BUS_OVERFLOW             36
 #define MSG_ID_SOF_ACK                  37
 #define MSG_ID_STOP_REC_ACK             38
@@ -62,17 +62,6 @@
 #define MSG_ID_STOP_LS_ACK              43
 #define MSG_ID_OUTPUT_TERTIARY1         44
 #define MSG_ID_OUTPUT_TERTIARY2         45
-<<<<<<< HEAD
-=======
-#define MSG_ID_STATS_BG                 46
-#define MSG_ID_STATS_BF                 47
-#define MSG_ID_STATS_BHIST              48
-#define MSG_ID_RDI0_UPDATE_ACK          49
-#define MSG_ID_RDI1_UPDATE_ACK          50
-#define MSG_ID_RDI2_UPDATE_ACK          51
-#define MSG_ID_PIX0_UPDATE_ACK          52
-#define MSG_ID_PREV_STOP_ACK            53
->>>>>>> e576617... Restore Sony camera driver
 
 
 /* ISP command IDs */
@@ -215,34 +204,6 @@
 #define VFE_CMD_CAPTURE_RAW                             136
 #define VFE_CMD_STOP_LIVESHOT                           137
 #define VFE_CMD_RECONFIG_VFE                            138
-<<<<<<< HEAD
-=======
-#define VFE_CMD_STATS_REQBUF                            139
-#define VFE_CMD_STATS_ENQUEUEBUF                        140
-#define VFE_CMD_STATS_FLUSH_BUFQ                        141
-#define VFE_CMD_STATS_UNREGBUF                          142
-#define VFE_CMD_STATS_BG_START                          143
-#define VFE_CMD_STATS_BG_STOP                           144
-#define VFE_CMD_STATS_BF_START                          145
-#define VFE_CMD_STATS_BF_STOP                           146
-#define VFE_CMD_STATS_BHIST_START                       147
-#define VFE_CMD_STATS_BHIST_STOP                        148
-#define VFE_CMD_RESET_2                                 149
-#define VFE_CMD_FOV_ENC_CFG                             150
-#define VFE_CMD_FOV_VIEW_CFG                            151
-#define VFE_CMD_FOV_ENC_UPDATE                          152
-#define VFE_CMD_FOV_VIEW_UPDATE                         153
-#define VFE_CMD_SCALER_ENC_CFG                          154
-#define VFE_CMD_SCALER_VIEW_CFG                         155
-#define VFE_CMD_SCALER_ENC_UPDATE                       156
-#define VFE_CMD_SCALER_VIEW_UPDATE                      157
-#define VFE_CMD_COLORXFORM_ENC_CFG                      158
-#define VFE_CMD_COLORXFORM_VIEW_CFG                     159
-#define VFE_CMD_COLORXFORM_ENC_UPDATE                   160
-#define VFE_CMD_COLORXFORM_VIEW_UPDATE                  161
-#define VFE_CMD_TEST_GEN_CFG                            162
-#define VFE_CMD_STOP_RECORDING_DONE                     163
->>>>>>> e576617... Restore Sony camera driver
 
 struct msm_isp_cmd {
 	int32_t  id;
@@ -371,14 +332,6 @@ struct msm_mctl_pp_frame_cmd {
 #define VFE_OUTPUTS_THUMB_AND_JPEG      BIT(10)
 #define VFE_OUTPUTS_RDI0                BIT(11)
 #define VFE_OUTPUTS_RDI1                BIT(12)
-<<<<<<< HEAD
-=======
-
-struct msm_frame_info {
-	uint32_t inst_handle;
-	uint32_t path;
-};
->>>>>>> e576617... Restore Sony camera driver
 
 #endif /*__MSM_ISP_H__*/
 
